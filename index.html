@@ -14,12 +14,12 @@
     --surface-2:#F2F2F3;
     --accent:#242424;
     --accent-dark:#0A0A0A;
-    --orange:#EAC94A;
-    --orange-soft:rgba(234,201,74,0.45);
-    --orange-bg:#FDFAEC;
-    --orange-bg-strong:#FBF6DC;
-    --orange-dark:#8A7420;
-    --orange-text:#7C6716;
+    --orange:#E8A23D;
+    --orange-soft:rgba(232,162,61,0.45);
+    --orange-bg:#FDF3E7;
+    --orange-bg-strong:#FBE8D3;
+    --orange-dark:#8A5A1E;
+    --orange-text:#7C4F17;
     --green-soft:rgba(22,163,74,0.45);
     --cta-green:#16A34A;
     --alert:#C0463A;
@@ -137,34 +137,88 @@
     justify-content:center;
     color:var(--ink);
     border-radius:6px;
-    pointer-events:none;
+    cursor:pointer;
   }
   .calendar-btn svg{display:block; width:22px; height:22px;}
   .date-input-wrap:hover .calendar-btn{border-color:var(--accent); color:var(--accent);}
-  .hidden-date-input{
+
+  .calendar-popup{
+    display:none;
     position:absolute;
-    right:3px;
-    top:50%;
-    transform:translateY(-50%);
-    width:44px;
-    height:calc(100% - 6px);
-    opacity:0;
-    border:none;
-    padding:0;
-    margin:0;
-    cursor:pointer;
-    z-index:2;
+    top:calc(100% + 8px);
+    right:0;
+    z-index:20;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:0 10px 28px rgba(20,18,12,0.14);
+    padding:16px;
+    width:320px;
   }
-  .hidden-date-input::-webkit-calendar-picker-indicator{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    margin:0;
-    padding:0;
-    opacity:0;
+  .calendar-popup.open{display:block;}
+  .calendar-popup-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .calendar-popup-title{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:1.05rem;
+    text-transform:capitalize;
+  }
+  .calendar-nav-btn{
+    width:36px;
+    height:36px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     cursor:pointer;
+    color:var(--ink);
+    font-size:1.1rem;
+    line-height:1;
+    padding:0;
+  }
+  .calendar-nav-btn:hover{border-color:var(--accent); color:var(--accent);}
+  .calendar-weekdays, .calendar-days{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .calendar-weekdays{margin-bottom:6px;}
+  .calendar-weekday{
+    text-align:center;
+    font-size:0.7rem;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .calendar-day{
+    width:100%;
+    aspect-ratio:1;
+    border:none;
+    background:none;
+    border-radius:8px;
+    font-family:'Inter',sans-serif;
+    font-size:0.92rem;
+    cursor:pointer;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .calendar-day:hover{background:var(--surface-2);}
+  .calendar-day.today{font-weight:700; color:var(--accent-dark); box-shadow:inset 0 0 0 1.5px var(--line);}
+  .calendar-day.selected{background:var(--accent-dark); color:#fff; font-weight:700;}
+  .calendar-day.selected:hover{background:var(--accent-dark);}
+  .calendar-day.outside{color:var(--line); cursor:default;}
+  .calendar-day.outside:hover{background:none;}
+  @media (max-width:560px){
+    .calendar-popup{width:auto; left:0; right:0;}
   }
   .add-actions{
     grid-column:1 / -1;
@@ -316,7 +370,11 @@
   .vehicle-count{
     font-size:0.78rem;
     color:var(--muted);
+    font-weight:500;
+  }
+  .vehicle-marca{
     font-weight:600;
+    color:var(--ink);
   }
   .vehicle-total{
     font-family:'JetBrains Mono',monospace;
@@ -620,10 +678,20 @@
         <label for="f-fecha">Fecha de pedido (dd/mm/aa)</label>
         <div class="date-input-wrap">
           <input id="f-fecha" type="text" inputmode="numeric" placeholder="30/06/26" required maxlength="8" autocomplete="off">
-          <button type="button" id="f-fecha-cal-btn" class="calendar-btn" tabindex="-1" aria-hidden="true">
+          <button type="button" id="f-fecha-cal-btn" class="calendar-btn" aria-label="Elegir fecha en el calendario">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           </button>
-          <input id="f-fecha-native" type="date" class="hidden-date-input" aria-label="Elegir fecha en el calendario">
+          <div id="f-fecha-calendar" class="calendar-popup">
+            <div class="calendar-popup-header">
+              <button type="button" class="calendar-nav-btn" id="calendar-prev-btn" aria-label="Mes anterior">‹</button>
+              <span class="calendar-popup-title" id="calendar-popup-title"></span>
+              <button type="button" class="calendar-nav-btn" id="calendar-next-btn" aria-label="Mes siguiente">›</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span class="calendar-weekday">L</span><span class="calendar-weekday">M</span><span class="calendar-weekday">X</span><span class="calendar-weekday">J</span><span class="calendar-weekday">V</span><span class="calendar-weekday">S</span><span class="calendar-weekday">D</span>
+            </div>
+            <div class="calendar-days" id="calendar-days"></div>
+          </div>
         </div>
       </div>
       <div class="form-msg" id="form-msg"></div>
@@ -990,7 +1058,7 @@ function groupHTML(g, isHistory){
 
   const marcaGrupo = g.items.map(p=>p.marca).find(m=>m) || '';
   const countLine = marcaGrupo
-    ? `${escapeHTML(marcaGrupo)} · ${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`
+    ? `<span class="vehicle-marca">${escapeHTML(marcaGrupo)}</span> · ${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`
     : `${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`;
 
   return `
@@ -1182,19 +1250,86 @@ async function deletePedido(id){
 
 document.getElementById('f-fecha').addEventListener('input', formatFechaInput);
 
-function syncNativeFecha(){
-  const native = document.getElementById('f-fecha-native');
-  const iso = parseDDMMYY(document.getElementById('f-fecha').value);
-  native.value = iso || todayISO();
-}
-document.getElementById('f-fecha-native').addEventListener('pointerdown', syncNativeFecha);
-document.getElementById('f-fecha-native').addEventListener('focus', syncNativeFecha);
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+let calendarView = { year: 0, month: 0 };
 
-document.getElementById('f-fecha-native').addEventListener('change', (e)=>{
-  if(e.target.value){
-    document.getElementById('f-fecha').value = formatFecha(e.target.value);
-    document.getElementById('form-msg').textContent = '';
+function openCalendar(){
+  const iso = parseDDMMYY(document.getElementById('f-fecha').value) || todayISO();
+  const d = parseLocalDate(iso);
+  calendarView.year = d.getFullYear();
+  calendarView.month = d.getMonth();
+  renderCalendar();
+  document.getElementById('f-fecha-calendar').classList.add('open');
+}
+
+function closeCalendar(){
+  document.getElementById('f-fecha-calendar').classList.remove('open');
+}
+
+function renderCalendar(){
+  const { year, month } = calendarView;
+  document.getElementById('calendar-popup-title').textContent = `${MESES_ES[month]} ${year}`;
+  const selectedISO = parseDDMMYY(document.getElementById('f-fecha').value);
+  const todayIso = todayISO();
+
+  const firstOfMonth = new Date(year, month, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7; // grid starts on Monday
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const cells = [];
+  for(let i = 0; i < startOffset; i++){
+    cells.push({ day: daysInPrevMonth - startOffset + 1 + i, outside: true });
   }
+  for(let d = 1; d <= daysInMonth; d++){
+    cells.push({ day: d, outside: false, iso: `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}` });
+  }
+  let trailing = 1;
+  while(cells.length % 7 !== 0){
+    cells.push({ day: trailing++, outside: true });
+  }
+
+  document.getElementById('calendar-days').innerHTML = cells.map(c=>{
+    if(c.outside) return `<button type="button" class="calendar-day outside" disabled>${c.day}</button>`;
+    const cls = ['calendar-day'];
+    if(c.iso === todayIso) cls.push('today');
+    if(c.iso === selectedISO) cls.push('selected');
+    return `<button type="button" class="${cls.join(' ')}" data-iso="${c.iso}">${c.day}</button>`;
+  }).join('');
+}
+
+document.getElementById('calendar-days').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.calendar-day');
+  if(!btn || btn.disabled) return;
+  document.getElementById('f-fecha').value = formatFecha(btn.dataset.iso);
+  document.getElementById('form-msg').textContent = '';
+  closeCalendar();
+});
+
+document.getElementById('calendar-prev-btn').addEventListener('click', ()=>{
+  calendarView.month--;
+  if(calendarView.month < 0){ calendarView.month = 11; calendarView.year--; }
+  renderCalendar();
+});
+document.getElementById('calendar-next-btn').addEventListener('click', ()=>{
+  calendarView.month++;
+  if(calendarView.month > 11){ calendarView.month = 0; calendarView.year++; }
+  renderCalendar();
+});
+
+document.getElementById('f-fecha-cal-btn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  const popup = document.getElementById('f-fecha-calendar');
+  if(popup.classList.contains('open')) closeCalendar(); else openCalendar();
+});
+document.getElementById('f-fecha').addEventListener('focus', openCalendar);
+
+document.addEventListener('click', (e)=>{
+  const wrap = document.querySelector('.date-input-wrap');
+  if(wrap && !wrap.contains(e.target)) closeCalendar();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeCalendar();
 });
 
 async function handleAddSubmit(){
