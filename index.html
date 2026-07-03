@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Pedidos de Piezas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F2023;
+    --bg:#F6F6F7;
+    --surface:#FFFFFF;
+    --surface-2:#F2F2F3;
+    --accent:#242424;
+    --accent-dark:#0A0A0A;
+    --orange:#EAC94A;
+    --orange-soft:rgba(234,201,74,0.45);
+    --orange-bg:#FDFAEC;
+    --orange-bg-strong:#FBF6DC;
+    --orange-dark:#8A7420;
+    --orange-text:#7C6716;
+    --green-soft:rgba(22,163,74,0.45);
+    --cta-green:#16A34A;
+    --alert:#C0463A;
+    --success:#0F766E;
+    --success-bg:#DCF3EF;
+    --success-text:#0B5B54;
+    --line:#E1E1E3;
+    --muted:#67696E;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:20px 16px 64px;
+  }
+  header.top{
+    margin-bottom:18px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.7rem;
+    letter-spacing:0.12em;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:1.9rem;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    margin:2px 0 4px;
+    color:var(--accent-dark);
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:0.92rem;
+    margin:0;
+  }
+
+  /* Quick add card */
+  .add-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-top:18px;
+    box-shadow:0 1px 3px rgba(60,52,20,0.05);
+  }
+  .add-card h2{
+    font-family:'Oswald',sans-serif;
+    font-size:0.95rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--accent);
+    margin:0 0 12px;
+  }
+  form#add-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 12px;
+  }
+  .field{display:flex; flex-direction:column; gap:4px;}
+  .field.full{grid-column:1 / -1;}
+  label{
+    font-size:0.72rem;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  input{
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    padding:9px 10px;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    background:var(--surface-2);
+    color:var(--ink);
+    width:100%;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:var(--surface);
+  }
+  #f-matricula{text-transform:uppercase; font-family:'JetBrains Mono',monospace; letter-spacing:0.04em;}
+
+  .date-input-wrap{position:relative;}
+  #f-fecha{padding-right:56px;}
+  .calendar-btn{
+    position:absolute;
+    right:3px;
+    top:50%;
+    transform:translateY(-50%);
+    width:44px;
+    height:calc(100% - 6px);
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+    border-radius:6px;
+    pointer-events:none;
+  }
+  .calendar-btn svg{display:block; width:22px; height:22px;}
+  .date-input-wrap:hover .calendar-btn{border-color:var(--accent); color:var(--accent);}
+  .hidden-date-input{
+    position:absolute;
+    right:3px;
+    top:50%;
+    transform:translateY(-50%);
+    width:44px;
+    height:calc(100% - 6px);
+    opacity:0;
+    border:none;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+    z-index:2;
+  }
+  .hidden-date-input::-webkit-calendar-picker-indicator{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    opacity:0;
+    cursor:pointer;
+  }
+  .add-actions{
+    grid-column:1 / -1;
+    display:flex;
+    justify-content:flex-end;
+    margin-top:4px;
+  }
+  button{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:opacity 0.15s ease, transform 0.1s ease;
+    -webkit-appearance:none;
+    appearance:none;
+    touch-action:manipulation;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+    padding:10px 22px;
+  }
+  .btn-primary:hover{opacity:0.92;}
+  .form-msg{
+    grid-column:1/-1;
+    font-size:0.82rem;
+    color:var(--alert);
+    min-height:1em;
+  }
+
+  /* Summary */
+  .summary{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .summary .pill{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 14px;
+    font-size:0.82rem;
+    color:var(--muted);
+    display:flex;
+    gap:6px;
+    align-items:baseline;
+  }
+  .summary .pill strong{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--ink);
+    font-size:0.95rem;
+  }
+  .summary .pill.warn strong{color:var(--orange-text);}
+
+  /* Search */
+  .search-row{
+    margin-top:18px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .search-row input{flex:1; min-width:180px;}
+  .csv-btn{
+    background:var(--surface);
+    border:1.5px solid var(--line);
+    color:var(--accent-dark);
+    padding:9px 14px;
+    white-space:nowrap;
+  }
+  .csv-btn:hover{border-color:var(--accent);}
+  .import-row{margin-top:8px;}
+
+  .backup-banner{
+    margin-top:12px;
+    background:var(--orange-bg);
+    border:1px solid var(--orange-soft);
+    border-radius:var(--radius);
+    padding:10px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:0.85rem;
+    color:var(--orange-dark);
+    flex-wrap:wrap;
+  }
+  .backup-btn{
+    padding:7px 12px;
+    font-size:0.8rem;
+    flex-shrink:0;
+  }
+
+  /* Section headers */
+  .section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:24px 0 10px;
+  }
+  .section-head h3{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    font-size:1rem;
+    letter-spacing:0.05em;
+    color:var(--accent-dark);
+    margin:0;
+  }
+  .toggle-link{
+    font-size:0.82rem;
+    color:var(--muted);
+    cursor:pointer;
+    text-decoration:underline;
+    font-weight:600;
+  }
+
+  /* Vehicle group (cards grouped by matrícula) */
+  .vehicle-group{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    margin-bottom:10px;
+    overflow:hidden;
+    border-left:5px solid var(--line);
+    box-shadow:0 1px 2px rgba(60,52,20,0.04);
+  }
+  .vehicle-group.warn{border-left-color:var(--orange-soft);}
+  .vehicle-group.overdue{border-left-color:var(--orange); background:var(--orange-bg-strong);}
+  .vehicle-group.done{border-left-color:var(--orange-soft);}
+
+  .vehicle-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .vehicle-summary{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .vehicle-count{
+    font-size:0.78rem;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .vehicle-total{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.95rem;
+    color:var(--accent-dark);
+  }
+  .vehicle-total-strike{
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+    font-size:0.74rem;
+    color:var(--muted);
+    text-decoration:line-through;
+    margin-left:4px;
+  }
+  .chevron{
+    font-size:1.1rem;
+    color:var(--muted);
+    transition:transform 0.15s ease;
+    flex-shrink:0;
+  }
+  .chevron.closed{transform:rotate(-90deg);}
+
+  .vehicle-pieces{
+    border-top:1px solid var(--line);
+  }
+  .piece-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--surface-2);
+  }
+  .piece-row:last-child{border-bottom:none;}
+  .piece-body{flex:1; min-width:0;}
+
+  .plate{
+    display:flex;
+    align-items:stretch;
+    background:#fff;
+    border:2px solid var(--accent);
+    border-radius:4px;
+    overflow:hidden;
+    flex-shrink:0;
+    height:34px;
+  }
+  .plate__eu{
+    background:#234A8C;
+    color:#fff;
+    font-size:0.5rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:14px;
+    line-height:1;
+  }
+  .plate__num{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.82rem;
+    letter-spacing:0.03em;
+    padding:0 8px;
+    display:flex;
+    align-items:center;
+    color:#111;
+    white-space:nowrap;
+  }
+
+  .ticket-pieza{
+    font-weight:600;
+    font-size:0.95rem;
+    color:var(--ink);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .ticket-meta{
+    font-size:0.8rem;
+    color:var(--muted);
+    margin-top:2px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .precio-block{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:2px;
+    font-family:'JetBrains Mono',monospace;
+    line-height:1.25;
+  }
+  .precio-row{
+    display:flex;
+    align-items:baseline;
+    gap:5px;
+    white-space:nowrap;
+  }
+  .precio-label{
+    font-family:'Inter',sans-serif;
+    font-size:0.65rem;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+  }
+  .precio-val{font-size:0.85rem; color:var(--muted);}
+  .precio-row.final .precio-val{font-size:0.97rem; font-weight:700; color:var(--ink);}
+  .precio-row.final.has-discount .precio-val{color:var(--success);}
+  .descuento-pct{
+    font-family:'Inter',sans-serif;
+    font-size:0.65rem;
+    font-weight:700;
+    color:var(--success-text);
+    background:var(--success-bg);
+    padding:1px 6px;
+    border-radius:999px;
+  }
+  .badge-dias{
+    font-size:0.72rem;
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:999px;
+    background:var(--surface-2);
+    color:var(--muted);
+  }
+  .badge-dias.warn{background:var(--orange-bg); color:var(--orange-dark);}
+  .badge-dias.overdue{background:var(--orange-bg-strong); color:var(--orange-text);}
+  .ticket-actions{display:flex; gap:6px;}
+  .btn-recibido{
+    background:var(--cta-green);
+    color:#fff;
+    padding:6px 12px;
+    font-size:0.78rem;
+  }
+  .btn-edit{
+    background:transparent;
+    color:var(--muted);
+    font-size:0.85rem;
+    padding:4px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+  }
+  .btn-edit:hover{color:var(--accent); border-color:var(--accent);}
+  .btn-devolver{
+    background:var(--surface-2);
+    color:var(--ink);
+    border:1px solid var(--line);
+    padding:6px 10px;
+    font-size:0.75rem;
+  }
+  .btn-devolver:hover{border-color:var(--accent);}
+  .btn-reclamar{
+    background:var(--surface);
+    color:var(--orange-text);
+    border:1px solid var(--orange);
+    padding:6px 10px;
+    font-size:0.75rem;
+  }
+  .btn-reclamar:hover{background:var(--orange-bg-strong);}
+  .btn-del{
+    background:transparent;
+    color:var(--muted);
+    font-size:1rem;
+    padding:4px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+  }
+  .btn-del:hover{color:var(--alert); border-color:var(--alert);}
+
+  .empty{
+    color:var(--muted);
+    font-size:0.88rem;
+    padding:20px 10px;
+    text-align:center;
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+  }
+  .loading{
+    text-align:center;
+    color:var(--muted);
+    padding:40px 0;
+    font-size:0.9rem;
+  }
+  .data-note{
+    margin-top:28px;
+    font-size:0.74rem;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  @media (max-width:560px){
+    form#add-form{grid-template-columns:1fr;}
+    .vehicle-header{flex-wrap:wrap;}
+    .vehicle-summary{order:3; width:100%; flex-direction:row; justify-content:space-between; margin-top:4px;}
+    .piece-row{flex-wrap:wrap;}
+    .piece-row .ticket-actions{margin-left:auto;}
+  }
+
+  /* Custom confirm modal (replaces native confirm(), which can be blocked in embedded views) */
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    inset:0;
+    background:rgba(32,30,24,0.45);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:var(--surface);
+    border-radius:var(--radius);
+    padding:20px;
+    max-width:340px;
+    width:100%;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+  }
+  .modal-box p{
+    margin:0 0 16px;
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+  .modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+  }
+  .btn-secondary{
+    background:var(--surface-2);
+    color:var(--ink);
+    border:1.5px solid var(--line);
+    padding:9px 16px;
+  }
+
+  /* Toast (replaces native alert()) */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translate(-50%, 20px);
+    background:var(--accent-dark);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:8px;
+    font-size:0.88rem;
+    max-width:90%;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.25);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s ease, transform 0.2s ease;
+    z-index:1100;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translate(-50%, 0);
+  }
+  .toast.error{background:var(--alert);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Pedidos de piezas</h1>
+    <p class="subtitle">Anota el pedido en cuanto cuelgues el WhatsApp con el proveedor. No se pierde nada.</p>
+  </header>
+
+  <div class="add-card">
+    <h2>Nuevo pedido</h2>
+    <form id="add-form" autocomplete="off">
+      <div class="field">
+        <label for="f-matricula">Matrícula</label>
+        <input id="f-matricula" type="text" placeholder="1234 ABC" required maxlength="12">
+      </div>
+      <div class="field">
+        <label for="f-marca">Marca / modelo — opcional</label>
+        <input id="f-marca" type="text" placeholder="Seat León" maxlength="40" autocomplete="off">
+      </div>
+      <div class="field full">
+        <label for="f-pieza">Pieza</label>
+        <input id="f-pieza" type="text" placeholder="Pastillas de freno delanteras" required maxlength="80">
+      </div>
+      <div class="field full">
+        <label for="f-proveedor">Proveedor</label>
+        <input id="f-proveedor" type="text" list="proveedores-list" placeholder="Recambios Pérez" required maxlength="60">
+        <datalist id="proveedores-list"></datalist>
+      </div>
+      <div class="field">
+        <label for="f-precio">Precio sin descuento (€)</label>
+        <input id="f-precio" type="number" inputmode="decimal" step="0.01" min="0" placeholder="45.00" required>
+      </div>
+      <div class="field">
+        <label for="f-descuento">Descuento (%) — opcional</label>
+        <input id="f-descuento" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0">
+      </div>
+      <div class="field full">
+        <label for="f-fecha">Fecha de pedido (dd/mm/aa)</label>
+        <div class="date-input-wrap">
+          <input id="f-fecha" type="text" inputmode="numeric" placeholder="30/06/26" required maxlength="8" autocomplete="off">
+          <button type="button" id="f-fecha-cal-btn" class="calendar-btn" tabindex="-1" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </button>
+          <input id="f-fecha-native" type="date" class="hidden-date-input" aria-label="Elegir fecha en el calendario">
+        </div>
+      </div>
+      <div class="form-msg" id="form-msg"></div>
+      <div class="add-actions">
+        <button type="button" id="cancel-edit-btn" class="btn-secondary" style="display:none; margin-right:8px;">Cancelar</button>
+        <button type="button" id="submit-btn" class="btn-primary">Añadir pedido</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div id="backup-banner" class="backup-banner" style="display:none;">
+    <span id="backup-msg"></span>
+    <button class="csv-btn backup-btn" onclick="document.getElementById('export-btn').click()">Exportar ahora</button>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="search" placeholder="Buscar por matrícula, pieza o proveedor...">
+    <button class="csv-btn" id="export-btn">Exportar CSV</button>
+    <button class="csv-btn" id="pdf-btn">Descargar PDF</button>
+  </div>
+  <div class="import-row">
+    <input type="file" id="import-file" accept=".csv" hidden>
+    <span class="toggle-link" id="import-btn">Importar pedidos desde un CSV (recuperar copia)</span>
+  </div>
+
+  <div class="section-head">
+    <h3>Pendientes</h3>
+  </div>
+  <div id="pending-list"><div class="loading">Cargando pedidos...</div></div>
+
+  <div class="section-head">
+    <h3>Recibidos</h3>
+    <span class="toggle-link" id="toggle-historial">Mostrar</span>
+  </div>
+  <div id="history-list" style="display:none;"></div>
+
+  <p class="data-note">Los datos se guardan en la base de datos del taller y se comparten entre todos los dispositivos que abran esta página.</p>
+</div>
+
+<div id="confirm-modal" class="modal-overlay">
+  <div class="modal-box">
+    <p id="confirm-message"></p>
+    <div class="modal-actions">
+      <button id="confirm-cancel" class="btn-secondary">Cancelar</button>
+      <button id="confirm-ok" class="btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ============================================================
+//  CONFIGURACIÓN DE LA BASE DE DATOS (Supabase)
+//  Rellena estos dos valores con los de tu proyecto Supabase.
+//  Los encuentras en: Supabase → Project Settings → API
+//  Mientras estén vacíos, la app guarda los datos solo en este
+//  navegador (no se comparten entre dispositivos).
+// ============================================================
+const SUPABASE_URL = '';        // p.ej. 'https://xxxxxxxx.supabase.co'
+const SUPABASE_ANON_KEY = '';   // la clave "anon public"
+const SUPABASE_TABLE = 'pedidos';
+const SUPABASE_ROW_ID = 'taller-principal'; // un identificador para el taller
+
+const STORAGE_KEY = 'pedidos-data';
+const BACKUP_KEY = 'pedidos-last-backup';
+let pedidos = [];
+let historialVisible = false;
+let collapsedGroups = new Set();
+let lastBackupISO = null;
+
+const usingSupabase = () => SUPABASE_URL && SUPABASE_ANON_KEY;
+
+// --- Supabase REST helpers -------------------------------------------------
+async function sbGet(){
+  const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,last_backup`;
+  const res = await fetch(url, {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+  if(!res.ok) throw new Error('Supabase GET ' + res.status);
+  const rows = await res.json();
+  return rows[0] || null;
+}
+
+async function sbUpsert(fields){
+  const body = Object.assign({ id: SUPABASE_ROW_ID }, fields);
+  const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error('Supabase UPSERT ' + res.status);
+}
+
+// --- Load / save pedidos ---------------------------------------------------
+async function loadPedidos(){
+  if(usingSupabase()){
+    try{
+      const row = await sbGet();
+      if(row && row.data) return typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+      return [];
+    }catch(e){
+      showToast('No se pudo conectar con la base de datos. Revisa tu conexión.', true);
+      return [];
+    }
+  }
+  // Fallback: this browser only
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+
+async function savePedidos(){
+  if(usingSupabase()){
+    try{
+      await sbUpsert({ data: pedidos });
+    }catch(e){
+      showToast('No se pudieron guardar los cambios en la base de datos.', true);
+    }
+    return;
+  }
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos));
+  }catch(e){}
+}
+
+async function loadLastBackup(){
+  if(usingSupabase()){
+    try{
+      const row = await sbGet();
+      return (row && row.last_backup) ? row.last_backup : null;
+    }catch(e){ return null; }
+  }
+  try{
+    return localStorage.getItem(BACKUP_KEY) || null;
+  }catch(e){ return null; }
+}
+
+async function saveLastBackup(){
+  lastBackupISO = todayISO();
+  if(usingSupabase()){
+    try{ await sbUpsert({ last_backup: lastBackupISO }); }catch(e){}
+  } else {
+    try{ localStorage.setItem(BACKUP_KEY, lastBackupISO); }catch(e){}
+  }
+  renderBackupBanner();
+}
+
+function renderBackupBanner(){
+  const banner = document.getElementById('backup-banner');
+  const msgEl = document.getElementById('backup-msg');
+  if(pedidos.length === 0){
+    banner.style.display = 'none';
+    return;
+  }
+  if(!lastBackupISO){
+    msgEl.textContent = 'Aún no has hecho ninguna copia de seguridad de los pedidos.';
+    banner.style.display = 'flex';
+    return;
+  }
+  const dias = diasDesde(lastBackupISO);
+  if(dias >= 7){
+    msgEl.textContent = `Última copia de seguridad hace ${dias} días.`;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function todayISO(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function parseLocalDate(iso){
+  return new Date(iso + 'T00:00:00');
+}
+
+function diasDesde(iso){
+  const start = parseLocalDate(iso);
+  const now = new Date();
+  const nowMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((nowMid - start) / 86400000);
+}
+
+function formatFecha(iso){
+  const d = parseLocalDate(iso);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
+}
+
+function formatEuro(n){
+  return new Intl.NumberFormat('es-ES', {style:'currency', currency:'EUR'}).format(n);
+}
+
+function precioFinal(p){
+  const pct = p.descuento || 0;
+  return Math.round((p.precio * (1 - pct/100)) * 100) / 100;
+}
+
+function parseDDMMYY(str){
+  const m = (str||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if(!m) return null;
+  const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yyyy = 2000 + parseInt(m[3],10);
+  if(mm < 1 || mm > 12) return null;
+  const d = new Date(yyyy, mm-1, dd);
+  if(d.getFullYear() !== yyyy || d.getMonth() !== mm-1 || d.getDate() !== dd) return null;
+  const pad = n => String(n).padStart(2,'0');
+  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
+}
+
+function formatFechaInput(e){
+  let digits = e.target.value.replace(/\D/g,'').slice(0,6);
+  let out = digits;
+  if(digits.length > 4) out = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
+  else if(digits.length > 2) out = digits.slice(0,2) + '/' + digits.slice(2);
+  e.target.value = out;
+}
+
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>{ t.className = 'toast'; }, 3200);
+}
+
+function showConfirm(message){
+  return new Promise(resolve=>{
+    const modal = document.getElementById('confirm-modal');
+    document.getElementById('confirm-message').textContent = message;
+    modal.classList.add('show');
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    function cleanup(result){
+      modal.classList.remove('show');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+function plateHTML(matricula){
+  return `<div class="plate"><div class="plate__eu">E</div><div class="plate__num">${matricula}</div></div>`;
+}
+
+function renderSummary(pendientes){
+  const totalLista = pendientes.reduce((s,p)=>s+p.precio,0);
+  const totalDesc = pendientes.reduce((s,p)=>s+precioFinal(p),0);
+  const overdue = pendientes.filter(p=>diasDesde(p.fechaPedido)>=5).length;
+  const el = document.getElementById('summary');
+  el.innerHTML = `
+    <div class="pill">Pendientes <strong>${pendientes.length}</strong></div>
+    <div class="pill">Importe sin descuento <strong>${formatEuro(totalLista)}</strong></div>
+    <div class="pill">Importe con descuento <strong>${formatEuro(totalDesc)}</strong></div>
+    <div class="pill ${overdue>0?'warn':''}">Con retraso (5+ días) <strong>${overdue}</strong></div>
+  `;
+}
+
+function escapeHTML(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function matchesQ(p, q){
+  if(!q) return true;
+  return p.matricula.toLowerCase().includes(q) || p.pieza.toLowerCase().includes(q) || p.proveedor.toLowerCase().includes(q) || (p.marca||'').toLowerCase().includes(q);
+}
+
+function pieceRowHTML(p, isHistory){
+  const dias = diasDesde(p.fechaPedido);
+  let badgeCls = '';
+  const diasLabel = dias === 0 ? 'Hoy' : dias === 1 ? 'Ayer' : `${dias} días`;
+  if(!isHistory){
+    if(dias >= 5) badgeCls = 'overdue';
+    else if(dias >= 2) badgeCls = 'warn';
+  }
+  const pct = p.descuento || 0;
+  const final = precioFinal(p);
+  const precioHTML = `
+    <div class="precio-block">
+      <div class="precio-row">
+        <span class="precio-label">Lista</span>
+        <span class="precio-val">${formatEuro(p.precio)}</span>
+      </div>
+      <div class="precio-row final ${pct>0?'has-discount':''}">
+        <span class="precio-label">Con desc.</span>
+        <span class="precio-val">${formatEuro(final)}</span>
+        ${pct>0 ? `<span class="descuento-pct">-${pct}%</span>` : ''}
+      </div>
+    </div>
+  `;
+  const right = isHistory
+    ? `<span class="badge-dias">Recibido ${formatFecha(p.fechaRecibido)}</span>
+       <div class="ticket-actions">
+         <button class="btn-devolver" onclick="devolverPendiente('${p.id}')" title="Devolver a pendientes">Devolver</button>
+         <button class="btn-edit" onclick="startEdit('${p.id}')" title="Editar">✎</button>
+         <button class="btn-del" onclick="deletePedido('${p.id}')" title="Eliminar">×</button>
+       </div>`
+    : `<span class="badge-dias ${badgeCls}">${diasLabel}</span>
+       <div class="ticket-actions">
+         ${dias >= 5 ? `<button class="btn-reclamar" onclick="reclamarPedido('${p.id}')" title="Reclamar al proveedor">Reclamar</button>` : ''}
+         <button class="btn-recibido" onclick="markRecibido('${p.id}')">Recibido</button>
+         <button class="btn-edit" onclick="startEdit('${p.id}')" title="Editar">✎</button>
+         <button class="btn-del" onclick="deletePedido('${p.id}')" title="Eliminar">×</button>
+       </div>`;
+  return `
+    <div class="piece-row">
+      <div class="piece-body">
+        <div class="ticket-pieza">${escapeHTML(p.pieza)}</div>
+        <div class="ticket-meta">${escapeHTML(p.proveedor)} · pedido ${formatFecha(p.fechaPedido)}</div>
+      </div>
+      ${precioHTML}
+      ${right}
+    </div>
+  `;
+}
+
+function groupHTML(g, isHistory){
+  const totalLista = g.items.reduce((s,p)=>s+p.precio,0);
+  const totalDesc = g.items.reduce((s,p)=>s+precioFinal(p),0);
+  const hasDiscount = totalDesc < totalLista - 0.004;
+  const count = g.items.length;
+  const piezaLabel = count === 1 ? '1 pieza' : `${count} piezas`;
+  const groupKey = g.matricula + (isHistory ? '_h' : '_p');
+  const collapsed = collapsedGroups.has(groupKey);
+
+  let urgencyCls = '';
+  let badgeCls = '';
+  let diasBadge = '';
+  if(!isHistory){
+    const dias = diasDesde(g.oldest);
+    const diasLabel = dias === 0 ? 'Hoy' : dias === 1 ? 'Ayer' : `${dias} días`;
+    if(dias >= 5){ urgencyCls='overdue'; badgeCls='overdue'; }
+    else if(dias >= 2){ urgencyCls='warn'; badgeCls='warn'; }
+    diasBadge = `<span class="badge-dias ${badgeCls}">${diasLabel}</span>`;
+  } else {
+    urgencyCls = 'done';
+  }
+
+  const totalHTML = hasDiscount
+    ? `<span class="vehicle-total">${formatEuro(totalDesc)} <span class="vehicle-total-strike">${formatEuro(totalLista)}</span></span>`
+    : `<span class="vehicle-total">${formatEuro(totalLista)}</span>`;
+
+  const marcaGrupo = g.items.map(p=>p.marca).find(m=>m) || '';
+  const countLine = marcaGrupo
+    ? `${escapeHTML(marcaGrupo)} · ${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`
+    : `${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`;
+
+  return `
+    <div class="vehicle-group ${urgencyCls}">
+      <div class="vehicle-header" onclick="toggleGroup('${groupKey}')">
+        ${plateHTML(g.matricula)}
+        <div class="vehicle-summary">
+          <span class="vehicle-count">${countLine}</span>
+          ${totalHTML}
+        </div>
+        ${diasBadge}
+        <span class="chevron ${collapsed ? 'closed' : ''}">⌄</span>
+      </div>
+      <div class="vehicle-pieces" style="${collapsed ? 'display:none;' : ''}">
+        ${g.items.map(p=>pieceRowHTML(p,isHistory)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function toggleGroup(key){
+  if(collapsedGroups.has(key)) collapsedGroups.delete(key);
+  else collapsedGroups.add(key);
+  render();
+}
+
+function buildGroups(list, isHistory){
+  const map = {};
+  list.forEach(p=>{
+    (map[p.matricula] = map[p.matricula] || []).push(p);
+  });
+  let groups = Object.entries(map).map(([matricula, items])=>{
+    if(isHistory){
+      items.sort((a,b)=> (b.fechaRecibido||'').localeCompare(a.fechaRecibido||''));
+      return {matricula, items, sortKey: items[0].fechaRecibido || ''};
+    } else {
+      items.sort((a,b)=> a.fechaPedido.localeCompare(b.fechaPedido));
+      return {matricula, items, oldest: items[0].fechaPedido, sortKey: items[0].fechaPedido};
+    }
+  });
+  groups.sort((a,b)=> isHistory
+    ? b.sortKey.localeCompare(a.sortKey)
+    : a.sortKey.localeCompare(b.sortKey)
+  );
+  return groups;
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+
+  const pendientesList = pedidos.filter(p=>p.estado==='pedido' && matchesQ(p,q));
+  const recibidosList = pedidos.filter(p=>p.estado==='recibido' && matchesQ(p,q))
+    .sort((a,b)=> (b.fechaRecibido||'').localeCompare(a.fechaRecibido||''))
+    .slice(0,30);
+
+  renderSummary(pedidos.filter(p=>p.estado==='pedido'));
+
+  const pendGroups = buildGroups(pendientesList, false);
+  const pendEl = document.getElementById('pending-list');
+  pendEl.innerHTML = pendGroups.length
+    ? pendGroups.map(g=>groupHTML(g,false)).join('')
+    : `<div class="empty">No hay pedidos pendientes. Añade el primero arriba.</div>`;
+
+  const histGroups = buildGroups(recibidosList, true);
+  const histEl = document.getElementById('history-list');
+  histEl.innerHTML = histGroups.length
+    ? histGroups.map(g=>groupHTML(g,true)).join('')
+    : `<div class="empty">Aún no hay piezas recibidas.</div>`;
+
+  updateProveedoresList();
+  renderBackupBanner();
+}
+
+function updateProveedoresList(){
+  const list = document.getElementById('proveedores-list');
+  const provs = [...new Set(pedidos.map(p=>p.proveedor))].sort();
+  list.innerHTML = provs.map(p=>`<option value="${escapeHTML(p)}">`).join('');
+}
+
+function marcaDeMatricula(matricula){
+  const norm = (matricula||'').trim().toUpperCase();
+  if(!norm) return '';
+  for(let i = pedidos.length - 1; i >= 0; i--){
+    if(pedidos[i].matricula === norm && pedidos[i].marca) return pedidos[i].marca;
+  }
+  return '';
+}
+
+document.getElementById('f-matricula').addEventListener('input', (e)=>{
+  const marcaInput = document.getElementById('f-marca');
+  const conocida = marcaDeMatricula(e.target.value);
+  if(conocida && !marcaInput.value) marcaInput.value = conocida;
+});
+document.getElementById('f-matricula').addEventListener('blur', (e)=>{
+  const marcaInput = document.getElementById('f-marca');
+  const conocida = marcaDeMatricula(e.target.value);
+  if(conocida && !marcaInput.value) marcaInput.value = conocida;
+});
+
+async function markRecibido(id){
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  p.estado = 'recibido';
+  p.fechaRecibido = todayISO();
+  await savePedidos();
+  render();
+}
+
+async function devolverPendiente(id){
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  p.estado = 'pedido';
+  delete p.fechaRecibido;
+  await savePedidos();
+  render();
+  showToast('Pedido devuelto a pendientes.');
+}
+
+function mensajeReclamacion(p){
+  const dias = diasDesde(p.fechaPedido);
+  return `Hola, ¿cómo va el pedido de "${p.pieza}" que os hice el ${formatFecha(p.fechaPedido)}? Ya han pasado ${dias} días y lo necesitamos para un coche que tenemos en el taller. ¿Me podéis confirmar cuándo llega? Gracias.`;
+}
+
+async function reclamarPedido(id){
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  const msg = mensajeReclamacion(p);
+
+  // Try to copy to clipboard first, so the message is available either way
+  let copied = false;
+  try{
+    await navigator.clipboard.writeText(msg);
+    copied = true;
+  }catch(e){}
+
+  // Open WhatsApp with the message pre-filled (user picks the supplier contact there)
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  const win = window.open(url, '_blank');
+
+  if(win){
+    showToast(copied ? 'Mensaje copiado y WhatsApp abierto.' : 'WhatsApp abierto con el mensaje listo.');
+  } else if(copied){
+    showToast('Mensaje copiado. Pégalo en WhatsApp al proveedor.');
+  } else {
+    showToast('No se pudo preparar el mensaje. Inténtalo de nuevo.', true);
+  }
+}
+
+let editingId = null;
+
+function startEdit(id){
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  editingId = id;
+  document.getElementById('f-matricula').value = p.matricula;
+  document.getElementById('f-marca').value = p.marca || '';
+  document.getElementById('f-pieza').value = p.pieza;
+  document.getElementById('f-proveedor').value = p.proveedor;
+  document.getElementById('f-precio').value = p.precio;
+  document.getElementById('f-descuento').value = p.descuento || '';
+  document.getElementById('f-fecha').value = formatFecha(p.fechaPedido);
+  document.getElementById('form-msg').textContent = '';
+  document.querySelector('.add-card h2').textContent = 'Editando pedido';
+  document.querySelector('.btn-primary').textContent = 'Guardar cambios';
+  document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+  document.querySelector('.add-card').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('f-matricula').focus();
+}
+
+function cancelEdit(){
+  editingId = null;
+  document.getElementById('add-form').reset();
+  document.getElementById('f-fecha').value = formatFecha(todayISO());
+  document.getElementById('form-msg').textContent = '';
+  document.querySelector('.add-card h2').textContent = 'Nuevo pedido';
+  document.querySelector('.btn-primary').textContent = 'Añadir pedido';
+  document.getElementById('cancel-edit-btn').style.display = 'none';
+}
+
+async function deletePedido(id){
+  const ok = await showConfirm('¿Eliminar este pedido? No se puede deshacer.');
+  if(!ok) return;
+  pedidos = pedidos.filter(x=>x.id!==id);
+  if(editingId === id) cancelEdit();
+  await savePedidos();
+  render();
+  showToast('Pedido eliminado.');
+}
+
+document.getElementById('f-fecha').addEventListener('input', formatFechaInput);
+
+function syncNativeFecha(){
+  const native = document.getElementById('f-fecha-native');
+  const iso = parseDDMMYY(document.getElementById('f-fecha').value);
+  native.value = iso || todayISO();
+}
+document.getElementById('f-fecha-native').addEventListener('pointerdown', syncNativeFecha);
+document.getElementById('f-fecha-native').addEventListener('focus', syncNativeFecha);
+
+document.getElementById('f-fecha-native').addEventListener('change', (e)=>{
+  if(e.target.value){
+    document.getElementById('f-fecha').value = formatFecha(e.target.value);
+    document.getElementById('form-msg').textContent = '';
+  }
+});
+
+async function handleAddSubmit(){
+  const matricula = document.getElementById('f-matricula').value.trim().toUpperCase();
+  const marca = document.getElementById('f-marca').value.trim();
+  const pieza = document.getElementById('f-pieza').value.trim();
+  const proveedor = document.getElementById('f-proveedor').value.trim();
+  const precio = parseFloat(document.getElementById('f-precio').value);
+  const descuentoRaw = document.getElementById('f-descuento').value;
+  let descuento = descuentoRaw === '' ? 0 : parseFloat(descuentoRaw);
+  if(isNaN(descuento)) descuento = 0;
+  descuento = Math.min(100, Math.max(0, descuento));
+  const fechaRaw = document.getElementById('f-fecha').value;
+  const fechaPedido = parseDDMMYY(fechaRaw);
+  const msg = document.getElementById('form-msg');
+
+  if(!matricula || !pieza || !proveedor || isNaN(precio)){
+    msg.textContent = 'Rellena todos los campos.';
+    return;
+  }
+  if(!fechaPedido){
+    msg.textContent = 'La fecha debe tener el formato dd/mm/aa, por ejemplo 30/06/26.';
+    return;
+  }
+  msg.textContent = '';
+
+  if(editingId){
+    const p = pedidos.find(x=>x.id===editingId);
+    if(p){
+      p.matricula = matricula;
+      p.marca = marca;
+      p.pieza = pieza;
+      p.proveedor = proveedor;
+      p.precio = precio;
+      p.descuento = descuento;
+      p.fechaPedido = fechaPedido;
+      await savePedidos();
+      render();
+      showToast('Cambios guardados.');
+    }
+    cancelEdit();
+    return;
+  }
+
+  const nuevo = {
+    id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    matricula, marca, pieza, proveedor, precio, descuento, fechaPedido,
+    estado: 'pedido'
+  };
+  pedidos.push(nuevo);
+  await savePedidos();
+  render();
+
+  document.getElementById('add-form').reset();
+  document.getElementById('f-fecha').value = formatFecha(todayISO());
+  document.getElementById('f-matricula').focus();
+  showToast('Pedido añadido.');
+}
+
+document.getElementById('submit-btn').addEventListener('click', handleAddSubmit);
+document.getElementById('add-form').addEventListener('submit', (e)=>{ e.preventDefault(); });
+document.getElementById('add-form').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && e.target && e.target.tagName === 'INPUT'){
+    e.preventDefault();
+    handleAddSubmit();
+  }
+});
+
+document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+
+document.getElementById('search').addEventListener('input', render);
+
+document.getElementById('toggle-historial').addEventListener('click', ()=>{
+  historialVisible = !historialVisible;
+  document.getElementById('history-list').style.display = historialVisible ? 'block' : 'none';
+  document.getElementById('toggle-historial').textContent = historialVisible ? 'Ocultar' : 'Mostrar';
+});
+
+function saveOrShareFile(blob, filename, mimeType, shareTitle){
+  return (async ()=>{
+    try{
+      if(navigator.canShare){
+        const file = new File([blob], filename, {type: mimeType});
+        if(navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title: shareTitle || filename});
+          return 'shared';
+        }
+      }
+    }catch(err){
+      if(err && err.name === 'AbortError') return 'cancelled';
+      // if share fails for any other reason, fall through to the classic download
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 300);
+    return 'downloaded';
+  })();
+}
+
+document.getElementById('export-btn').addEventListener('click', async ()=>{
+  const rows = [['Matricula','Marca','Pieza','Proveedor','Precio sin descuento','Descuento (%)','Precio con descuento','Fecha pedido','Estado','Fecha recibido']];
+  pedidos.forEach(p=>{
+    rows.push([p.matricula, p.marca||'', p.pieza, p.proveedor, p.precio, p.descuento||0, precioFinal(p), p.fechaPedido, p.estado, p.fechaRecibido||'']);
+  });
+  const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  try{
+    const result = await saveOrShareFile(blob, 'pedidos_piezas.csv', 'text/csv', 'Pedidos de piezas');
+    if(result !== 'cancelled'){ showToast('CSV listo.'); await saveLastBackup(); }
+  }catch(err){
+    showToast('No se pudo generar el CSV.', true);
+  }
+});
+
+function generarPDF(){
+  if(!window.jspdf){
+    showToast('No se pudo cargar el generador de PDF. Comprueba tu conexión e inténtalo de nuevo.', true);
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const marginX = 15;
+  const maxWidth = 210 - marginX*2;
+  const pageBottom = 282;
+  let y = 20;
+
+  function ensure(space){
+    if(y + space > pageBottom){ doc.addPage(); y = 20; }
+  }
+  function writeLine(str, opts={}){
+    const size = opts.size || 9.5;
+    const gap = opts.gap || (size/2 + 2.5);
+    const color = opts.color || [30,34,39];
+    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
+    doc.setFontSize(size);
+    doc.setTextColor(color[0], color[1], color[2]);
+    const lines = doc.splitTextToSize(str, maxWidth - (opts.indent||0));
+    lines.forEach(ln=>{
+      ensure(gap);
+      doc.text(ln, marginX + (opts.indent||0), y);
+      y += gap;
+    });
+  }
+  function rule(){
+    ensure(4);
+    doc.setDrawColor(200,200,195);
+    doc.line(marginX, y, 210 - marginX, y);
+    y += 5;
+  }
+  function piezaLinea(p, isHistory){
+    const pct = p.descuento || 0;
+    const precioStr = pct > 0
+      ? `${formatEuro(p.precio)} -> ${formatEuro(precioFinal(p))} (-${pct}%)`
+      : formatEuro(p.precio);
+    const fechaStr = isHistory
+      ? `recibido ${formatFecha(p.fechaRecibido)}`
+      : (()=>{
+          const dias = diasDesde(p.fechaPedido);
+          const diasLabel = dias===0?'hoy':dias===1?'1 día':`${dias} días`;
+          return `pedido ${formatFecha(p.fechaPedido)} (${diasLabel})`;
+        })();
+    writeLine(`- ${p.pieza} | ${p.proveedor} | ${precioStr} | ${fechaStr}`, {indent:4});
+  }
+  function grupoBloque(g, isHistory){
+    const totalLista = g.items.reduce((s,p)=>s+p.precio,0);
+    const totalDesc = g.items.reduce((s,p)=>s+precioFinal(p),0);
+    const extra = totalDesc < totalLista - 0.004 ? `  (lista: ${formatEuro(totalLista)})` : '';
+    ensure(9);
+    const marcaPDF = g.items.map(p=>p.marca).find(m=>m) || '';
+    writeLine(`${g.matricula}${marcaPDF ? ' · ' + marcaPDF : ''} · ${g.items.length} pieza${g.items.length>1?'s':''} · Total: ${formatEuro(totalDesc)}${extra}`, {bold:true, size:10.5, gap:6});
+    g.items.forEach(p=>piezaLinea(p, isHistory));
+    y += 2;
+  }
+
+  const now = new Date();
+  const genFecha = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getFullYear()).slice(-2)}`;
+  const genHora = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  writeLine('Control de Pedidos de Piezas', {size:16, bold:true, gap:8, color:[10,10,10]});
+  writeLine(`Informe generado el ${genFecha} a las ${genHora}`, {size:9, color:[107,109,114], gap:8});
+  rule();
+
+  const pendientes = pedidos.filter(p=>p.estado==='pedido');
+  const totalLista = pendientes.reduce((s,p)=>s+p.precio,0);
+  const totalDesc = pendientes.reduce((s,p)=>s+precioFinal(p),0);
+  const overdue = pendientes.filter(p=>diasDesde(p.fechaPedido)>=5).length;
+  writeLine(`Pedidos pendientes: ${pendientes.length}   ·   Sin descuento: ${formatEuro(totalLista)}   ·   Con descuento: ${formatEuro(totalDesc)}   ·   Con retraso (5+ días): ${overdue}`, {size:9.5, gap:10});
+
+  writeLine('PENDIENTES', {size:12, bold:true, color:[10,10,10], gap:8});
+  const pendGroups = buildGroups(pendientes, false);
+  if(pendGroups.length === 0){
+    writeLine('No hay pedidos pendientes.', {color:[107,109,114], gap:8});
+  } else {
+    pendGroups.forEach(g=>grupoBloque(g, false));
+  }
+
+  rule();
+
+  writeLine('RECIBIDOS (últimos 30)', {size:12, bold:true, color:[15,118,110], gap:8});
+  const recibidos = pedidos.filter(p=>p.estado==='recibido')
+    .sort((a,b)=>(b.fechaRecibido||'').localeCompare(a.fechaRecibido||''))
+    .slice(0,30);
+  const histGroups = buildGroups(recibidos, true);
+  if(histGroups.length === 0){
+    writeLine('Aún no hay piezas recibidas.', {color:[107,109,114], gap:8});
+  } else {
+    histGroups.forEach(g=>grupoBloque(g, true));
+  }
+
+  const filename = `informe_pedidos_${genFecha.replace(/\//g,'-')}.pdf`;
+  const blob = doc.output('blob');
+  saveOrShareFile(blob, filename, 'application/pdf', 'Informe de pedidos')
+    .then(result => { if(result !== 'cancelled') showToast('PDF listo.'); })
+    .catch(() => showToast('No se pudo generar el PDF.', true));
+}
+
+document.getElementById('pdf-btn').addEventListener('click', generarPDF);
+
+function parseCSV(text){
+  const rows = [];
+  let i = 0, field = '', row = [], inQuotes = false;
+  while(i < text.length){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += c; i++; continue;
+    } else {
+      if(c === '"'){ inQuotes = true; i++; continue; }
+      if(c === ','){ row.push(field); field = ''; i++; continue; }
+      if(c === '\r'){ i++; continue; }
+      if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+      field += c; i++; continue;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length > 1 || (r.length === 1 && r[0] !== ''));
+}
+
+function pedidosDesdeCSV(text){
+  const rows = parseCSV(text.replace(/^\uFEFF/, ''));
+  if(rows.length < 2) return [];
+  const header = rows[0].map(h=>(h||'').trim().toLowerCase());
+  const tieneMarca = header[1] === 'marca';
+  const dataRows = rows.slice(1);
+  return dataRows.map(r=>{
+    let matricula, marca, pieza, proveedor, precio, descuento, fechaPedido, estado, fechaRecibido;
+    if(tieneMarca){
+      [matricula, marca, pieza, proveedor, precio, descuento, , fechaPedido, estado, fechaRecibido] = r;
+    } else {
+      [matricula, pieza, proveedor, precio, descuento, , fechaPedido, estado, fechaRecibido] = r;
+      marca = '';
+    }
+    return {
+      id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      matricula: (matricula||'').trim().toUpperCase(),
+      marca: (marca||'').trim(),
+      pieza: (pieza||'').trim(),
+      proveedor: (proveedor||'').trim(),
+      precio: parseFloat(precio) || 0,
+      descuento: parseFloat(descuento) || 0,
+      fechaPedido: (fechaPedido||'').trim(),
+      estado: (estado||'').trim() === 'recibido' ? 'recibido' : 'pedido',
+      fechaRecibido: (fechaRecibido||'').trim() || undefined
+    };
+  }).filter(p => p.matricula && p.pieza && p.fechaPedido);
+}
+
+document.getElementById('import-btn').addEventListener('click', ()=>{
+  document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const nuevos = pedidosDesdeCSV(text);
+    if(nuevos.length === 0){
+      showToast('No se han encontrado pedidos válidos en ese archivo. Comprueba que es un CSV exportado desde esta misma herramienta.', true);
+      e.target.value = '';
+      return;
+    }
+    const ok = await showConfirm(`Se han encontrado ${nuevos.length} pedidos en el archivo. Se añadirán a los que ya tienes ahora mismo (no se borra nada existente). ¿Continuar?`);
+    if(!ok){ e.target.value = ''; return; }
+    pedidos = pedidos.concat(nuevos);
+    await savePedidos();
+    render();
+    showToast(`Importados ${nuevos.length} pedidos correctamente.`);
+  }catch(err){
+    showToast('No se pudo leer el archivo. Asegúrate de que es un .csv válido.', true);
+  }
+  e.target.value = '';
+});
+
+(async function init(){
+  document.getElementById('f-fecha').value = formatFecha(todayISO());
+  pedidos = await loadPedidos();
+  lastBackupISO = await loadLastBackup();
+  render();
+})();
+</script>
+</body>
+</html>
