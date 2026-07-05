@@ -1,8 +1,19 @@
 # Carservice — Control de Pedidos de Piezas
 
-Aplicación web para anotar los pedidos de piezas del taller (matrícula, marca,
-pieza, proveedor, precio, descuento y fecha), agrupados por coche, con avisos de
-retraso, reclamación por WhatsApp, exportación a CSV/PDF y copia de seguridad.
+Aplicación web para el taller, con dos secciones:
+
+1. **Inspecciones** — el mecánico revisa un coche averiado y anotas lo que
+   necesita: matrícula, marca/modelo, fecha de matriculación y las piezas (varias
+   por coche, una por línea). Es tu lista antes de llamar a los proveedores.
+2. **Pedidos de piezas** — cuando llamas a un proveedor y pides una pieza, pasa a
+   ser un pedido real con proveedor, precio, descuento y fecha.
+
+**Cómo se conectan:** en una inspección, cada pieza tiene un botón **"Pedir"**.
+Al pulsarlo, se abre la sección Pedidos con la matrícula, la marca y el nombre de
+la pieza ya rellenados (solo añades proveedor y precio durante la llamada), y en
+la inspección esa pieza queda marcada **"En pedido"**. Cuando el pedido está
+hecho, pulsas **"Confirmar"** y la pieza pasa a **"Pedido ✓"**. Las piezas nunca
+desaparecen solas: quedan como registro de lo que necesitaba el coche.
 
 Esta versión está preparada para funcionar como **página web real**, con los datos
 **compartidos entre todos los dispositivos del taller** a través de una base de
@@ -34,7 +45,7 @@ Puedes pedirle a Claude Code que te acompañe en cada uno de estos pasos.
 
 ### 1. Crear el proyecto en Supabase
 1. Entra en https://supabase.com y crea una cuenta gratuita.
-2. Pulsa **New project**, ponle un nombre (p.ej. `nextgo-taller`) y elige una
+2. Pulsa **New project**, ponle un nombre (p.ej. `carservice-taller`) y elige una
    contraseña para la base de datos (guárdala).
 3. Espera 1–2 minutos a que el proyecto se cree.
 
@@ -76,8 +87,6 @@ Supabase. Coméntaselo a Claude Code si te interesa.
 
 ## Próximas mejoras posibles
 
-- Calendario propio (grande y consistente en todos los navegadores), en lugar del
-  selector nativo del navegador.
 - Login para restringir el acceso.
 - Campo de notas por pieza.
 - Número de teléfono por proveedor, para que "Reclamar" abra directamente el chat.

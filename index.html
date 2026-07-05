@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control de Pedidos de Piezas</title>
+<title>Carservice · Control de Piezas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
@@ -69,6 +69,43 @@
     font-size:0.92rem;
     margin:0;
   }
+  .brandmark{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:0.85rem;
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+
+  /* Tabs */
+  .tabs{
+    display:flex;
+    gap:4px;
+    margin-top:18px;
+    border-bottom:2px solid var(--line);
+  }
+  .tab{
+    font-family:'Oswald',sans-serif;
+    font-size:0.9rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    background:transparent;
+    color:var(--muted);
+    padding:10px 18px;
+    border:none;
+    border-bottom:3px solid transparent;
+    margin-bottom:-2px;
+    border-radius:0;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .tab:hover{color:var(--accent);}
+  .tab.active{
+    color:var(--accent-dark);
+    border-bottom-color:var(--accent-dark);
+  }
 
   /* Quick add card */
   .add-card{
@@ -87,13 +124,32 @@
     color:var(--accent);
     margin:0 0 12px;
   }
-  form#add-form{
+  form#add-form, form#insp-form{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px 12px;
   }
   .field{display:flex; flex-direction:column; gap:4px;}
   .field.full{grid-column:1 / -1;}
+  textarea{
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    padding:9px 10px;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    background:var(--surface-2);
+    color:var(--ink);
+    width:100%;
+    resize:vertical;
+    line-height:1.4;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:var(--surface);
+  }
   label{
     font-size:0.72rem;
     font-weight:600;
@@ -118,10 +174,10 @@
     border-color:var(--accent);
     background:var(--surface);
   }
-  #f-matricula{text-transform:uppercase; font-family:'JetBrains Mono',monospace; letter-spacing:0.04em;}
+  #f-matricula, #i-matricula{text-transform:uppercase; font-family:'JetBrains Mono',monospace; letter-spacing:0.04em;}
 
   .date-input-wrap{position:relative;}
-  #f-fecha{padding-right:56px;}
+  .date-input-wrap input[type="text"]{padding-right:56px;}
   .calendar-btn{
     position:absolute;
     right:3px;
@@ -138,7 +194,9 @@
     color:var(--ink);
     border-radius:6px;
     cursor:pointer;
+    transition:transform 0.1s ease;
   }
+  .calendar-btn:active{transform:translateY(calc(-50% + 2px));}
   .calendar-btn svg{display:block; width:22px; height:22px;}
   .date-input-wrap:hover .calendar-btn{border-color:var(--accent); color:var(--accent);}
 
@@ -567,8 +625,83 @@
     text-align:center;
   }
 
+  /* Inspection cards */
+  .insp-piece-row .piece-body{padding-right:8px;}
+  .insp-pieza-nombre{
+    font-weight:600;
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+  .insp-pieza-nombre.done{
+    text-decoration:line-through;
+    color:var(--muted);
+  }
+  .insp-state{
+    font-size:0.72rem;
+    font-weight:600;
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .insp-state.en-pedido{background:var(--orange-bg-strong); color:var(--orange-text);}
+  .insp-state.pedido{background:var(--success-bg); color:var(--success-text);}
+  .btn-pedir{
+    background:var(--accent-dark);
+    color:#fff;
+    padding:6px 14px;
+    font-size:0.78rem;
+  }
+  .btn-pedir:hover{opacity:0.9;}
+  .pieza-input-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:8px;
+    align-items:center;
+  }
+  .pieza-input-row .pz-nombre{flex:2;}
+  .pieza-input-row .pz-ref{flex:1;}
+  .pieza-input-row .pz-remove{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:8px 10px;
+    font-size:1rem;
+    flex-shrink:0;
+    line-height:1;
+  }
+  .pieza-input-row .pz-remove:hover{color:var(--alert); border-color:var(--alert);}
+  .add-row-btn{
+    background:var(--surface-2);
+    color:var(--accent);
+    border:1px dashed var(--line);
+    border-radius:6px;
+    padding:8px 12px;
+    font-size:0.82rem;
+    font-weight:600;
+    margin-top:2px;
+  }
+  .add-row-btn:hover{border-color:var(--accent);}
+  .insp-ref{
+    font-size:0.78rem;
+    color:var(--muted);
+    margin-top:2px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .btn-confirmar{
+    background:var(--cta-green);
+    color:#fff;
+    padding:6px 12px;
+    font-size:0.75rem;
+  }
+  .vehicle-fecha-mat{
+    font-size:0.78rem;
+    color:var(--muted);
+    font-weight:500;
+  }
+
   @media (max-width:560px){
-    form#add-form{grid-template-columns:1fr;}
+    form#add-form, form#insp-form{grid-template-columns:1fr;}
     .vehicle-header{flex-wrap:wrap;}
     .vehicle-summary{order:3; width:100%; flex-direction:row; justify-content:space-between; margin-top:4px;}
     .piece-row{flex-wrap:wrap;}
@@ -642,10 +775,17 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>Pedidos de piezas</h1>
-    <p class="subtitle">Anota el pedido en cuanto cuelgues el WhatsApp con el proveedor. No se pierde nada.</p>
+    <div class="brandmark">Carservice</div>
+    <h1 id="page-title">Pedidos de piezas</h1>
+    <p class="subtitle" id="page-subtitle">Anota el pedido en cuanto cuelgues el WhatsApp con el proveedor. No se pierde nada.</p>
   </header>
 
+  <nav class="tabs" role="tablist">
+    <button class="tab" id="tab-inspecciones" role="tab" onclick="switchView('inspecciones')">Inspecciones</button>
+    <button class="tab active" id="tab-pedidos" role="tab" onclick="switchView('pedidos')">Pedidos</button>
+  </nav>
+
+  <section id="view-pedidos" class="view">
   <div class="add-card">
     <h2>Nuevo pedido</h2>
     <form id="add-form" autocomplete="off">
@@ -660,6 +800,10 @@
       <div class="field full">
         <label for="f-pieza">Pieza</label>
         <input id="f-pieza" type="text" placeholder="Pastillas de freno delanteras" required maxlength="80">
+      </div>
+      <div class="field full">
+        <label for="f-referencia">Referencia — opcional</label>
+        <input id="f-referencia" type="text" placeholder="Nº de referencia" maxlength="50" autocomplete="off">
       </div>
       <div class="field full">
         <label for="f-proveedor">Proveedor</label>
@@ -683,14 +827,14 @@
           </button>
           <div id="f-fecha-calendar" class="calendar-popup">
             <div class="calendar-popup-header">
-              <button type="button" class="calendar-nav-btn" id="calendar-prev-btn" aria-label="Mes anterior">‹</button>
-              <span class="calendar-popup-title" id="calendar-popup-title"></span>
-              <button type="button" class="calendar-nav-btn" id="calendar-next-btn" aria-label="Mes siguiente">›</button>
+              <button type="button" class="calendar-nav-btn" data-nav="prev" aria-label="Mes anterior">‹</button>
+              <span class="calendar-popup-title"></span>
+              <button type="button" class="calendar-nav-btn" data-nav="next" aria-label="Mes siguiente">›</button>
             </div>
             <div class="calendar-weekdays">
               <span class="calendar-weekday">L</span><span class="calendar-weekday">M</span><span class="calendar-weekday">X</span><span class="calendar-weekday">J</span><span class="calendar-weekday">V</span><span class="calendar-weekday">S</span><span class="calendar-weekday">D</span>
             </div>
-            <div class="calendar-days" id="calendar-days"></div>
+            <div class="calendar-days"></div>
           </div>
         </div>
       </div>
@@ -731,6 +875,73 @@
   <div id="history-list" style="display:none;"></div>
 
   <p class="data-note">Los datos se guardan en la base de datos del taller y se comparten entre todos los dispositivos que abran esta página.</p>
+  </section>
+
+  <section id="view-inspecciones" class="view" style="display:none;">
+    <div class="add-card">
+      <h2 id="insp-form-title">Nueva inspección</h2>
+      <form id="insp-form" autocomplete="off">
+        <div class="field">
+          <label for="i-matricula">Matrícula</label>
+          <input id="i-matricula" type="text" placeholder="1234 ABC" required maxlength="12">
+        </div>
+        <div class="field">
+          <label for="i-marca">Marca / modelo — opcional</label>
+          <input id="i-marca" type="text" placeholder="Seat León" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="i-bastidor">Bastidor (VIN) — opcional</label>
+          <input id="i-bastidor" type="text" placeholder="VSSZZZ..." maxlength="17" autocomplete="off" style="text-transform:uppercase;">
+        </div>
+        <div class="field full">
+          <label for="i-fecha">Fecha de matriculación (dd/mm/aa) — opcional</label>
+          <div class="date-input-wrap">
+            <input id="i-fecha" type="text" inputmode="numeric" placeholder="30/06/20" maxlength="8" autocomplete="off">
+            <button type="button" id="i-fecha-cal-btn" class="calendar-btn" aria-label="Elegir fecha en el calendario">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+            <div id="i-fecha-calendar" class="calendar-popup">
+              <div class="calendar-popup-header">
+                <button type="button" class="calendar-nav-btn" data-nav="prev" aria-label="Mes anterior">‹</button>
+                <span class="calendar-popup-title"></span>
+                <button type="button" class="calendar-nav-btn" data-nav="next" aria-label="Mes siguiente">›</button>
+              </div>
+              <div class="calendar-weekdays">
+                <span class="calendar-weekday">L</span><span class="calendar-weekday">M</span><span class="calendar-weekday">X</span><span class="calendar-weekday">J</span><span class="calendar-weekday">V</span><span class="calendar-weekday">S</span><span class="calendar-weekday">D</span>
+              </div>
+              <div class="calendar-days"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Piezas necesarias</label>
+          <div id="i-piezas-rows"></div>
+          <button type="button" id="i-add-pieza-row" class="add-row-btn">+ Añadir otra pieza</button>
+        </div>
+        <div class="form-msg" id="insp-form-msg"></div>
+        <div class="add-actions">
+          <button type="button" id="insp-cancel-btn" class="btn-secondary" style="display:none; margin-right:8px;">Cancelar</button>
+          <button type="button" id="insp-submit-btn" class="btn-primary">Añadir inspección</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="insp-search" placeholder="Buscar por matrícula, modelo o pieza...">
+      <button class="csv-btn" id="insp-export-btn">Exportar CSV</button>
+    </div>
+    <div class="import-row">
+      <input type="file" id="insp-import-file" accept=".csv" hidden>
+      <span class="toggle-link" id="insp-import-btn">Importar inspecciones desde un CSV (recuperar copia)</span>
+    </div>
+
+    <div class="section-head">
+      <h3>Coches por revisar / pedir</h3>
+    </div>
+    <div id="insp-list"><div class="loading">Cargando inspecciones...</div></div>
+
+    <p class="data-note">Anota lo que el mecánico detecta. Cuando llames al proveedor, pulsa "Pedir" en cada pieza para pasarla a Pedidos.</p>
+  </section>
 </div>
 
 <div id="confirm-modal" class="modal-overlay">
@@ -761,6 +972,7 @@ const SUPABASE_ROW_ID = 'taller-principal'; // un identificador para el taller
 const STORAGE_KEY = 'pedidos-data';
 const BACKUP_KEY = 'pedidos-last-backup';
 let pedidos = [];
+let inspecciones = [];
 let historialVisible = false;
 let collapsedGroups = new Set();
 let lastBackupISO = null;
@@ -769,7 +981,7 @@ const usingSupabase = () => SUPABASE_URL && SUPABASE_ANON_KEY;
 
 // --- Supabase REST helpers -------------------------------------------------
 async function sbGet(){
-  const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,last_backup`;
+  const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,inspecciones,last_backup`;
   const res = await fetch(url, {
     headers: {
       'apikey': SUPABASE_ANON_KEY,
@@ -827,6 +1039,36 @@ async function savePedidos(){
   }
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos));
+  }catch(e){}
+}
+
+async function loadInspecciones(){
+  if(usingSupabase()){
+    try{
+      const row = await sbGet();
+      if(row && row.inspecciones) return typeof row.inspecciones === 'string' ? JSON.parse(row.inspecciones) : row.inspecciones;
+      return [];
+    }catch(e){
+      return [];
+    }
+  }
+  try{
+    const raw = localStorage.getItem('inspecciones-data');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+
+async function saveInspecciones(){
+  if(usingSupabase()){
+    try{
+      await sbUpsert({ inspecciones: inspecciones });
+    }catch(e){
+      showToast('No se pudieron guardar los cambios en la base de datos.', true);
+    }
+    return;
+  }
+  try{
+    localStorage.setItem('inspecciones-data', JSON.stringify(inspecciones));
   }catch(e){}
 }
 
@@ -1022,7 +1264,7 @@ function pieceRowHTML(p, isHistory){
     <div class="piece-row">
       <div class="piece-body">
         <div class="ticket-pieza">${escapeHTML(p.pieza)}</div>
-        <div class="ticket-meta">${escapeHTML(p.proveedor)} · pedido ${formatFecha(p.fechaPedido)}</div>
+        <div class="ticket-meta">${escapeHTML(p.proveedor)} · pedido ${formatFecha(p.fechaPedido)}${p.referencia ? ' · Ref: ' + escapeHTML(p.referencia) : ''}</div>
       </div>
       ${precioHTML}
       ${right}
@@ -1144,6 +1386,18 @@ function marcaDeMatricula(matricula){
   for(let i = pedidos.length - 1; i >= 0; i--){
     if(pedidos[i].matricula === norm && pedidos[i].marca) return pedidos[i].marca;
   }
+  for(let i = inspecciones.length - 1; i >= 0; i--){
+    if(inspecciones[i].matricula === norm && inspecciones[i].marca) return inspecciones[i].marca;
+  }
+  return '';
+}
+
+function bastidorDeMatricula(matricula){
+  const norm = (matricula||'').trim().toUpperCase();
+  if(!norm) return '';
+  for(let i = inspecciones.length - 1; i >= 0; i--){
+    if(inspecciones[i].matricula === norm && inspecciones[i].bastidor) return inspecciones[i].bastidor;
+  }
   return '';
 }
 
@@ -1216,15 +1470,16 @@ function startEdit(id){
   document.getElementById('f-matricula').value = p.matricula;
   document.getElementById('f-marca').value = p.marca || '';
   document.getElementById('f-pieza').value = p.pieza;
+  document.getElementById('f-referencia').value = p.referencia || '';
   document.getElementById('f-proveedor').value = p.proveedor;
   document.getElementById('f-precio').value = p.precio;
   document.getElementById('f-descuento').value = p.descuento || '';
   document.getElementById('f-fecha').value = formatFecha(p.fechaPedido);
   document.getElementById('form-msg').textContent = '';
-  document.querySelector('.add-card h2').textContent = 'Editando pedido';
-  document.querySelector('.btn-primary').textContent = 'Guardar cambios';
+  document.querySelector('#view-pedidos .add-card h2').textContent = 'Editando pedido';
+  document.getElementById('submit-btn').textContent = 'Guardar cambios';
   document.getElementById('cancel-edit-btn').style.display = 'inline-block';
-  document.querySelector('.add-card').scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelector('#view-pedidos .add-card').scrollIntoView({behavior:'smooth', block:'start'});
   document.getElementById('f-matricula').focus();
 }
 
@@ -1233,8 +1488,8 @@ function cancelEdit(){
   document.getElementById('add-form').reset();
   document.getElementById('f-fecha').value = formatFecha(todayISO());
   document.getElementById('form-msg').textContent = '';
-  document.querySelector('.add-card h2').textContent = 'Nuevo pedido';
-  document.querySelector('.btn-primary').textContent = 'Añadir pedido';
+  document.querySelector('#view-pedidos .add-card h2').textContent = 'Nuevo pedido';
+  document.getElementById('submit-btn').textContent = 'Añadir pedido';
   document.getElementById('cancel-edit-btn').style.display = 'none';
 }
 
@@ -1251,91 +1506,93 @@ async function deletePedido(id){
 document.getElementById('f-fecha').addEventListener('input', formatFechaInput);
 
 const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-let calendarView = { year: 0, month: 0 };
 
-function openCalendar(){
-  const iso = parseDDMMYY(document.getElementById('f-fecha').value) || todayISO();
-  const d = parseLocalDate(iso);
-  calendarView.year = d.getFullYear();
-  calendarView.month = d.getMonth();
-  renderCalendar();
-  document.getElementById('f-fecha-calendar').classList.add('open');
+function createDatePicker(inputId, btnId, popupId, msgId){
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  const popup = document.getElementById(popupId);
+  const title = popup.querySelector('.calendar-popup-title');
+  const daysEl = popup.querySelector('.calendar-days');
+  const prevBtn = popup.querySelector('[data-nav="prev"]');
+  const nextBtn = popup.querySelector('[data-nav="next"]');
+  const view = { year: 0, month: 0 };
+
+  function open(){
+    const iso = parseDDMMYY(input.value) || todayISO();
+    const d = parseLocalDate(iso);
+    view.year = d.getFullYear();
+    view.month = d.getMonth();
+    render();
+    popup.classList.add('open');
+  }
+  function close(){ popup.classList.remove('open'); }
+  function render(){
+    title.textContent = `${MESES_ES[view.month]} ${view.year}`;
+    const selectedISO = parseDDMMYY(input.value);
+    const todayIso = todayISO();
+    const firstOfMonth = new Date(view.year, view.month, 1);
+    const startOffset = (firstOfMonth.getDay() + 6) % 7; // grid starts on Monday
+    const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(view.year, view.month, 0).getDate();
+
+    const cells = [];
+    for(let i = 0; i < startOffset; i++){
+      cells.push({ day: daysInPrevMonth - startOffset + 1 + i, outside: true });
+    }
+    for(let d = 1; d <= daysInMonth; d++){
+      cells.push({ day: d, outside: false, iso: `${view.year}-${String(view.month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}` });
+    }
+    let trailing = 1;
+    while(cells.length % 7 !== 0){
+      cells.push({ day: trailing++, outside: true });
+    }
+
+    daysEl.innerHTML = cells.map(c=>{
+      if(c.outside) return `<button type="button" class="calendar-day outside" disabled>${c.day}</button>`;
+      const cls = ['calendar-day'];
+      if(c.iso === todayIso) cls.push('today');
+      if(c.iso === selectedISO) cls.push('selected');
+      return `<button type="button" class="${cls.join(' ')}" data-iso="${c.iso}">${c.day}</button>`;
+    }).join('');
+  }
+
+  daysEl.addEventListener('click', e=>{
+    const dayBtn = e.target.closest('.calendar-day');
+    if(!dayBtn || dayBtn.disabled) return;
+    input.value = formatFecha(dayBtn.dataset.iso);
+    if(msgId) document.getElementById(msgId).textContent = '';
+    close();
+  });
+  prevBtn.addEventListener('click', ()=>{
+    view.month--;
+    if(view.month < 0){ view.month = 11; view.year--; }
+    render();
+  });
+  nextBtn.addEventListener('click', ()=>{
+    view.month++;
+    if(view.month > 11){ view.month = 0; view.year++; }
+    render();
+  });
+  btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    if(popup.classList.contains('open')) close(); else open();
+  });
+  input.addEventListener('focus', open);
+  document.addEventListener('click', e=>{
+    if(!input.closest('.date-input-wrap').contains(e.target)) close();
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape') close();
+  });
 }
 
-function closeCalendar(){
-  document.getElementById('f-fecha-calendar').classList.remove('open');
-}
-
-function renderCalendar(){
-  const { year, month } = calendarView;
-  document.getElementById('calendar-popup-title').textContent = `${MESES_ES[month]} ${year}`;
-  const selectedISO = parseDDMMYY(document.getElementById('f-fecha').value);
-  const todayIso = todayISO();
-
-  const firstOfMonth = new Date(year, month, 1);
-  const startOffset = (firstOfMonth.getDay() + 6) % 7; // grid starts on Monday
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-  const cells = [];
-  for(let i = 0; i < startOffset; i++){
-    cells.push({ day: daysInPrevMonth - startOffset + 1 + i, outside: true });
-  }
-  for(let d = 1; d <= daysInMonth; d++){
-    cells.push({ day: d, outside: false, iso: `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}` });
-  }
-  let trailing = 1;
-  while(cells.length % 7 !== 0){
-    cells.push({ day: trailing++, outside: true });
-  }
-
-  document.getElementById('calendar-days').innerHTML = cells.map(c=>{
-    if(c.outside) return `<button type="button" class="calendar-day outside" disabled>${c.day}</button>`;
-    const cls = ['calendar-day'];
-    if(c.iso === todayIso) cls.push('today');
-    if(c.iso === selectedISO) cls.push('selected');
-    return `<button type="button" class="${cls.join(' ')}" data-iso="${c.iso}">${c.day}</button>`;
-  }).join('');
-}
-
-document.getElementById('calendar-days').addEventListener('click', (e)=>{
-  const btn = e.target.closest('.calendar-day');
-  if(!btn || btn.disabled) return;
-  document.getElementById('f-fecha').value = formatFecha(btn.dataset.iso);
-  document.getElementById('form-msg').textContent = '';
-  closeCalendar();
-});
-
-document.getElementById('calendar-prev-btn').addEventListener('click', ()=>{
-  calendarView.month--;
-  if(calendarView.month < 0){ calendarView.month = 11; calendarView.year--; }
-  renderCalendar();
-});
-document.getElementById('calendar-next-btn').addEventListener('click', ()=>{
-  calendarView.month++;
-  if(calendarView.month > 11){ calendarView.month = 0; calendarView.year++; }
-  renderCalendar();
-});
-
-document.getElementById('f-fecha-cal-btn').addEventListener('click', (e)=>{
-  e.stopPropagation();
-  const popup = document.getElementById('f-fecha-calendar');
-  if(popup.classList.contains('open')) closeCalendar(); else openCalendar();
-});
-document.getElementById('f-fecha').addEventListener('focus', openCalendar);
-
-document.addEventListener('click', (e)=>{
-  const wrap = document.querySelector('.date-input-wrap');
-  if(wrap && !wrap.contains(e.target)) closeCalendar();
-});
-document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape') closeCalendar();
-});
+createDatePicker('f-fecha', 'f-fecha-cal-btn', 'f-fecha-calendar', 'form-msg');
 
 async function handleAddSubmit(){
   const matricula = document.getElementById('f-matricula').value.trim().toUpperCase();
   const marca = document.getElementById('f-marca').value.trim();
   const pieza = document.getElementById('f-pieza').value.trim();
+  const referencia = document.getElementById('f-referencia').value.trim();
   const proveedor = document.getElementById('f-proveedor').value.trim();
   const precio = parseFloat(document.getElementById('f-precio').value);
   const descuentoRaw = document.getElementById('f-descuento').value;
@@ -1362,6 +1619,7 @@ async function handleAddSubmit(){
       p.matricula = matricula;
       p.marca = marca;
       p.pieza = pieza;
+      p.referencia = referencia;
       p.proveedor = proveedor;
       p.precio = precio;
       p.descuento = descuento;
@@ -1376,7 +1634,7 @@ async function handleAddSubmit(){
 
   const nuevo = {
     id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-    matricula, marca, pieza, proveedor, precio, descuento, fechaPedido,
+    matricula, marca, pieza, referencia, proveedor, precio, descuento, fechaPedido,
     estado: 'pedido'
   };
   pedidos.push(nuevo);
@@ -1436,9 +1694,9 @@ function saveOrShareFile(blob, filename, mimeType, shareTitle){
 }
 
 document.getElementById('export-btn').addEventListener('click', async ()=>{
-  const rows = [['Matricula','Marca','Pieza','Proveedor','Precio sin descuento','Descuento (%)','Precio con descuento','Fecha pedido','Estado','Fecha recibido']];
+  const rows = [['Matricula','Marca','Pieza','Referencia','Proveedor','Precio sin descuento','Descuento (%)','Precio con descuento','Fecha pedido','Estado','Fecha recibido']];
   pedidos.forEach(p=>{
-    rows.push([p.matricula, p.marca||'', p.pieza, p.proveedor, p.precio, p.descuento||0, precioFinal(p), p.fechaPedido, p.estado, p.fechaRecibido||'']);
+    rows.push([p.matricula, p.marca||'', p.pieza, p.referencia||'', p.proveedor, p.precio, p.descuento||0, precioFinal(p), p.fechaPedido, p.estado, p.fechaRecibido||'']);
   });
   const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -1581,29 +1839,32 @@ function pedidosDesdeCSV(text){
   const rows = parseCSV(text.replace(/^\uFEFF/, ''));
   if(rows.length < 2) return [];
   const header = rows[0].map(h=>(h||'').trim().toLowerCase());
-  const tieneMarca = header[1] === 'marca';
-  const dataRows = rows.slice(1);
-  return dataRows.map(r=>{
-    let matricula, marca, pieza, proveedor, precio, descuento, fechaPedido, estado, fechaRecibido;
-    if(tieneMarca){
-      [matricula, marca, pieza, proveedor, precio, descuento, , fechaPedido, estado, fechaRecibido] = r;
-    } else {
-      [matricula, pieza, proveedor, precio, descuento, , fechaPedido, estado, fechaRecibido] = r;
-      marca = '';
-    }
-    return {
-      id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-      matricula: (matricula||'').trim().toUpperCase(),
-      marca: (marca||'').trim(),
-      pieza: (pieza||'').trim(),
-      proveedor: (proveedor||'').trim(),
-      precio: parseFloat(precio) || 0,
-      descuento: parseFloat(descuento) || 0,
-      fechaPedido: (fechaPedido||'').trim(),
-      estado: (estado||'').trim() === 'recibido' ? 'recibido' : 'pedido',
-      fechaRecibido: (fechaRecibido||'').trim() || undefined
-    };
-  }).filter(p => p.matricula && p.pieza && p.fechaPedido);
+  const idx = (name) => header.indexOf(name);
+  const iMat = idx('matricula');
+  const iMarca = idx('marca');
+  const iPieza = idx('pieza');
+  const iRef = idx('referencia');
+  const iProv = idx('proveedor');
+  const iPrecio = idx('precio sin descuento') !== -1 ? idx('precio sin descuento') : idx('precio');
+  const iDesc = idx('descuento (%)');
+  const iFecha = idx('fecha pedido');
+  const iEstado = idx('estado');
+  const iRecibido = idx('fecha recibido');
+  const get = (r, i) => (i !== -1 && r[i] !== undefined) ? r[i] : '';
+
+  return rows.slice(1).map(r=>({
+    id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    matricula: (get(r,iMat)||'').trim().toUpperCase(),
+    marca: (get(r,iMarca)||'').trim(),
+    pieza: (get(r,iPieza)||'').trim(),
+    referencia: (get(r,iRef)||'').trim(),
+    proveedor: (get(r,iProv)||'').trim(),
+    precio: parseFloat(get(r,iPrecio)) || 0,
+    descuento: parseFloat(get(r,iDesc)) || 0,
+    fechaPedido: (get(r,iFecha)||'').trim(),
+    estado: (get(r,iEstado)||'').trim() === 'recibido' ? 'recibido' : 'pedido',
+    fechaRecibido: (get(r,iRecibido)||'').trim() || undefined
+  })).filter(p => p.matricula && p.pieza && p.fechaPedido);
 }
 
 document.getElementById('import-btn').addEventListener('click', ()=>{
@@ -1633,9 +1894,437 @@ document.getElementById('import-file').addEventListener('change', async (e)=>{
   e.target.value = '';
 });
 
+// ============================================================
+//  INSPECCIONES
+// ============================================================
+
+let currentView = 'pedidos';
+let editingInspId = null;
+
+function switchView(view){
+  currentView = view;
+  const isPedidos = view === 'pedidos';
+  document.getElementById('view-pedidos').style.display = isPedidos ? 'block' : 'none';
+  document.getElementById('view-inspecciones').style.display = isPedidos ? 'none' : 'block';
+  document.getElementById('tab-pedidos').classList.toggle('active', isPedidos);
+  document.getElementById('tab-inspecciones').classList.toggle('active', !isPedidos);
+  document.getElementById('page-title').textContent = isPedidos ? 'Pedidos de piezas' : 'Inspecciones';
+  document.getElementById('page-subtitle').textContent = isPedidos
+    ? 'Anota el pedido en cuanto cuelgues el WhatsApp con el proveedor. No se pierde nada.'
+    : 'Anota lo que el mecánico detecta en cada coche. Luego pasa cada pieza a Pedidos con un toque.';
+  if(!isPedidos) renderInspecciones();
+}
+
+function inspMatchesQ(insp, q){
+  if(!q) return true;
+  if(insp.matricula.toLowerCase().includes(q)) return true;
+  if((insp.marca||'').toLowerCase().includes(q)) return true;
+  return insp.piezas.some(pz => pz.nombre.toLowerCase().includes(q));
+}
+
+function inspPieceRowHTML(insp, pz){
+  const estado = pz.estado || 'pendiente';
+  let stateBadge = '';
+  let actionBtn = '';
+  if(estado === 'pendiente'){
+    actionBtn = `<button class="btn-pedir" onclick="pedirPieza('${insp.id}','${pz.id}')">Pedir</button>`;
+  } else if(estado === 'en-pedido'){
+    stateBadge = `<span class="insp-state en-pedido">En pedido</span>`;
+    actionBtn = `<button class="btn-confirmar" onclick="confirmarPieza('${insp.id}','${pz.id}')" title="Marcar como pedido confirmado">Confirmar</button>`;
+  } else if(estado === 'pedido'){
+    stateBadge = `<span class="insp-state pedido">Pedido ✓</span>`;
+  }
+  const nombreCls = estado === 'pedido' ? 'insp-pieza-nombre done' : 'insp-pieza-nombre';
+  const refHTML = pz.referencia ? `<div class="insp-ref">Ref: ${escapeHTML(pz.referencia)}</div>` : '';
+  return `
+    <div class="piece-row insp-piece-row">
+      <div class="piece-body">
+        <div class="${nombreCls}">${escapeHTML(pz.nombre)}</div>
+        ${refHTML}
+      </div>
+      ${stateBadge}
+      <div class="ticket-actions">
+        ${actionBtn}
+        <button class="btn-del" onclick="deletePieza('${insp.id}','${pz.id}')" title="Eliminar pieza">×</button>
+      </div>
+    </div>
+  `;
+}
+
+function inspCardHTML(insp){
+  const total = insp.piezas.length;
+  const pedidas = insp.piezas.filter(p=>p.estado === 'pedido').length;
+  const enPedido = insp.piezas.filter(p=>p.estado === 'en-pedido').length;
+  const collapsed = collapsedGroups.has('insp_' + insp.id);
+  const fechaMat = insp.fechaMatriculacion ? ` · matriculado ${formatFecha(insp.fechaMatriculacion)}` : '';
+  const marca = insp.marca ? escapeHTML(insp.marca) : '';
+
+  let resumen;
+  if(total === 0){
+    resumen = 'sin piezas';
+  } else if(pedidas === total){
+    resumen = `${total} pieza${total>1?'s':''} · todas pedidas ✓`;
+  } else {
+    const pend = total - pedidas;
+    resumen = `${pend} por pedir de ${total}`;
+    if(enPedido > 0) resumen += ` · ${enPedido} en pedido`;
+  }
+
+  const allDone = total > 0 && pedidas === total;
+
+  return `
+    <div class="vehicle-group ${allDone ? 'done' : ''}">
+      <div class="vehicle-header" onclick="toggleGroup('insp_${insp.id}')">
+        ${plateHTML(insp.matricula)}
+        <div class="vehicle-summary">
+          <span class="vehicle-count">${marca ? `<span class="vehicle-marca">${marca}</span> · ` : ''}${resumen}</span>
+          ${insp.bastidor ? `<span class="vehicle-fecha-mat">Bastidor ${escapeHTML(insp.bastidor)}</span>` : ''}
+          ${insp.fechaMatriculacion ? `<span class="vehicle-fecha-mat">Matriculado ${formatFecha(insp.fechaMatriculacion)}</span>` : ''}
+        </div>
+        <div class="ticket-actions" onclick="event.stopPropagation()">
+          <button class="btn-edit" onclick="startEditInsp('${insp.id}')" title="Editar">✎</button>
+          <button class="btn-del" onclick="deleteInsp('${insp.id}')" title="Eliminar inspección">×</button>
+        </div>
+        <span class="chevron ${collapsed ? 'closed' : ''}">⌄</span>
+      </div>
+      <div class="vehicle-pieces" style="${collapsed ? 'display:none;' : ''}">
+        ${insp.piezas.map(pz=>inspPieceRowHTML(insp, pz)).join('') || '<div class="piece-row"><div class="piece-body"><div class="ticket-meta">Sin piezas anotadas.</div></div></div>'}
+      </div>
+    </div>
+  `;
+}
+
+function renderInspecciones(){
+  const q = document.getElementById('insp-search').value.trim().toLowerCase();
+  const list = inspecciones
+    .filter(insp => inspMatchesQ(insp, q))
+    .slice()
+    .sort((a,b)=> (b.creada||'').localeCompare(a.creada||''));
+  const el = document.getElementById('insp-list');
+  el.innerHTML = list.length
+    ? list.map(inspCardHTML).join('')
+    : `<div class="empty">No hay inspecciones. Añade la primera arriba.</div>`;
+}
+
+// --- Dynamic part rows (name + optional reference) ---
+function piezaRowInputHTML(nombre, referencia){
+  return `
+    <div class="pieza-input-row">
+      <input type="text" class="pz-nombre" placeholder="Pastillas de freno" maxlength="80" value="${escapeHTML(nombre||'')}">
+      <input type="text" class="pz-ref" placeholder="Nº de referencia" maxlength="50" value="${escapeHTML(referencia||'')}">
+      <button type="button" class="pz-remove" title="Quitar" onclick="removePiezaRow(this)">×</button>
+    </div>
+  `;
+}
+
+function addPiezaRow(nombre, referencia){
+  const container = document.getElementById('i-piezas-rows');
+  container.insertAdjacentHTML('beforeend', piezaRowInputHTML(nombre, referencia));
+}
+
+function removePiezaRow(btn){
+  const rows = document.querySelectorAll('#i-piezas-rows .pieza-input-row');
+  if(rows.length <= 1){
+    // keep at least one empty row
+    const row = btn.closest('.pieza-input-row');
+    row.querySelector('.pz-nombre').value = '';
+    row.querySelector('.pz-ref').value = '';
+    return;
+  }
+  btn.closest('.pieza-input-row').remove();
+}
+
+function resetPiezaRows(){
+  document.getElementById('i-piezas-rows').innerHTML = '';
+  addPiezaRow('', '');
+}
+
+function readPiezaRows(){
+  const rows = [...document.querySelectorAll('#i-piezas-rows .pieza-input-row')];
+  return rows.map(r=>({
+    nombre: r.querySelector('.pz-nombre').value.trim(),
+    referencia: r.querySelector('.pz-ref').value.trim()
+  })).filter(p=>p.nombre);
+}
+
+async function handleInspSubmit(){
+  const matricula = document.getElementById('i-matricula').value.trim().toUpperCase();
+  const marca = document.getElementById('i-marca').value.trim();
+  const bastidor = document.getElementById('i-bastidor').value.trim().toUpperCase();
+  const fechaRaw = document.getElementById('i-fecha').value.trim();
+  const msg = document.getElementById('insp-form-msg');
+
+  const piezasData = readPiezaRows();
+
+  if(!matricula){
+    msg.textContent = 'Indica al menos la matrícula.';
+    return;
+  }
+  if(piezasData.length === 0){
+    msg.textContent = 'Anota al menos una pieza.';
+    return;
+  }
+  let fechaMatriculacion = '';
+  if(fechaRaw){
+    const iso = parseDDMMYY(fechaRaw);
+    if(!iso){ msg.textContent = 'La fecha debe tener el formato dd/mm/aa.'; return; }
+    fechaMatriculacion = iso;
+  }
+  msg.textContent = '';
+
+  const mkPiezas = () => piezasData.map(p=>({
+    id: 'iz_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    nombre: p.nombre,
+    referencia: p.referencia || '',
+    estado: 'pendiente'
+  }));
+
+  if(editingInspId){
+    const insp = inspecciones.find(x=>x.id===editingInspId);
+    if(insp){
+      insp.matricula = matricula;
+      insp.marca = marca;
+      insp.bastidor = bastidor;
+      insp.fechaMatriculacion = fechaMatriculacion;
+      // keep existing pieces (with their states); append/update by name
+      const byName = {};
+      insp.piezas.forEach(p=>{ byName[p.nombre.toLowerCase()] = p; });
+      piezasData.forEach(pd=>{
+        const existing = byName[pd.nombre.toLowerCase()];
+        if(existing){
+          // update reference if the user filled/changed it
+          if(pd.referencia) existing.referencia = pd.referencia;
+        } else {
+          insp.piezas.push({ id:'iz_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), nombre:pd.nombre, referencia:pd.referencia||'', estado:'pendiente' });
+        }
+      });
+      await saveInspecciones();
+      renderInspecciones();
+      showToast('Inspección actualizada.');
+    }
+    cancelEditInsp();
+    return;
+  }
+
+  const nueva = {
+    id: 'insp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    matricula, marca, bastidor, fechaMatriculacion,
+    piezas: mkPiezas(),
+    creada: new Date().toISOString()
+  };
+  inspecciones.push(nueva);
+  await saveInspecciones();
+  renderInspecciones();
+
+  document.getElementById('insp-form').reset();
+  resetPiezaRows();
+  document.getElementById('i-matricula').focus();
+  showToast('Inspección añadida.');
+}
+
+function startEditInsp(id){
+  const insp = inspecciones.find(x=>x.id===id);
+  if(!insp) return;
+  editingInspId = id;
+  document.getElementById('i-matricula').value = insp.matricula;
+  document.getElementById('i-marca').value = insp.marca || '';
+  document.getElementById('i-bastidor').value = insp.bastidor || '';
+  document.getElementById('i-fecha').value = insp.fechaMatriculacion ? formatFecha(insp.fechaMatriculacion) : '';
+  const container = document.getElementById('i-piezas-rows');
+  container.innerHTML = '';
+  insp.piezas.forEach(p=> addPiezaRow(p.nombre, p.referencia));
+  addPiezaRow('', ''); // one empty row to add more
+  document.getElementById('insp-form-msg').textContent = 'Las piezas existentes conservan su estado. Para quitar una ya guardada, usa la × de cada pieza en la tarjeta de abajo.';
+  document.getElementById('insp-form-title').textContent = 'Editando inspección';
+  document.getElementById('insp-submit-btn').textContent = 'Guardar cambios';
+  document.getElementById('insp-cancel-btn').style.display = 'inline-block';
+  document.querySelector('#view-inspecciones .add-card').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('i-matricula').focus();
+}
+
+function cancelEditInsp(){
+  editingInspId = null;
+  document.getElementById('insp-form').reset();
+  resetPiezaRows();
+  document.getElementById('insp-form-msg').textContent = '';
+  document.getElementById('insp-form-title').textContent = 'Nueva inspección';
+  document.getElementById('insp-submit-btn').textContent = 'Añadir inspección';
+  document.getElementById('insp-cancel-btn').style.display = 'none';
+}
+
+async function deleteInsp(id){
+  const ok = await showConfirm('¿Eliminar esta inspección y todas sus piezas? No se puede deshacer.');
+  if(!ok) return;
+  inspecciones = inspecciones.filter(x=>x.id!==id);
+  if(editingInspId === id) cancelEditInsp();
+  await saveInspecciones();
+  renderInspecciones();
+  showToast('Inspección eliminada.');
+}
+
+async function deletePieza(inspId, piezaId){
+  const insp = inspecciones.find(x=>x.id===inspId);
+  if(!insp) return;
+  const ok = await showConfirm('¿Eliminar esta pieza de la inspección?');
+  if(!ok) return;
+  insp.piezas = insp.piezas.filter(p=>p.id!==piezaId);
+  await saveInspecciones();
+  renderInspecciones();
+  showToast('Pieza eliminada.');
+}
+
+// The key flow: "Pedir" -> prefill a new order in Pedidos, mark piece "en-pedido"
+async function pedirPieza(inspId, piezaId){
+  const insp = inspecciones.find(x=>x.id===inspId);
+  if(!insp) return;
+  const pz = insp.piezas.find(p=>p.id===piezaId);
+  if(!pz) return;
+
+  // mark as en-pedido and remember the link
+  pz.estado = 'en-pedido';
+  await saveInspecciones();
+
+  // switch to Pedidos and prefill the form (do NOT auto-create; user adds supplier+price)
+  switchView('pedidos');
+  document.getElementById('f-matricula').value = insp.matricula;
+  document.getElementById('f-marca').value = insp.marca || '';
+  document.getElementById('f-pieza').value = pz.nombre;
+  document.getElementById('f-referencia').value = pz.referencia || '';
+  document.getElementById('f-proveedor').value = '';
+  document.getElementById('f-precio').value = '';
+  document.getElementById('f-descuento').value = '';
+  document.getElementById('f-fecha').value = formatFecha(todayISO());
+  document.getElementById('form-msg').textContent = 'Añade proveedor y precio para completar el pedido de esta pieza.';
+  document.querySelector('#view-pedidos .add-card').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('f-proveedor').focus();
+  showToast('Pieza pasada a Pedidos. Añade proveedor y precio.');
+}
+
+async function confirmarPieza(inspId, piezaId){
+  const insp = inspecciones.find(x=>x.id===inspId);
+  if(!insp) return;
+  const pz = insp.piezas.find(p=>p.id===piezaId);
+  if(!pz) return;
+  pz.estado = 'pedido';
+  await saveInspecciones();
+  renderInspecciones();
+  showToast('Pieza marcada como pedida.');
+}
+
+// wire up inspection form
+document.getElementById('insp-submit-btn').addEventListener('click', handleInspSubmit);
+document.getElementById('insp-cancel-btn').addEventListener('click', cancelEditInsp);
+document.getElementById('insp-search').addEventListener('input', renderInspecciones);
+document.getElementById('i-add-pieza-row').addEventListener('click', ()=> addPiezaRow('', ''));
+document.getElementById('i-matricula').addEventListener('input', (e)=>{
+  const marcaInput = document.getElementById('i-marca');
+  const bastInput = document.getElementById('i-bastidor');
+  const conocida = marcaDeMatricula(e.target.value);
+  if(conocida && !marcaInput.value) marcaInput.value = conocida;
+  const bastConocido = bastidorDeMatricula(e.target.value);
+  if(bastConocido && !bastInput.value) bastInput.value = bastConocido;
+});
+document.getElementById('i-fecha').addEventListener('input', formatFechaInput);
+createDatePicker('i-fecha', 'i-fecha-cal-btn', 'i-fecha-calendar', 'insp-form-msg');
+
+// export / import de inspecciones (copia de seguridad)
+document.getElementById('insp-export-btn').addEventListener('click', async ()=>{
+  const rows = [['Matricula','Marca','Bastidor','Fecha matriculacion','Pieza','Referencia','Estado pieza']];
+  inspecciones.forEach(insp=>{
+    if(insp.piezas.length === 0){
+      rows.push([insp.matricula, insp.marca||'', insp.bastidor||'', insp.fechaMatriculacion||'', '', '', '']);
+    } else {
+      insp.piezas.forEach(pz=>{
+        rows.push([insp.matricula, insp.marca||'', insp.bastidor||'', insp.fechaMatriculacion||'', pz.nombre, pz.referencia||'', pz.estado||'pendiente']);
+      });
+    }
+  });
+  const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  try{
+    const result = await saveOrShareFile(blob, 'inspecciones.csv', 'text/csv', 'Inspecciones');
+    if(result !== 'cancelled') showToast('CSV listo.');
+  }catch(err){
+    showToast('No se pudo generar el CSV.', true);
+  }
+});
+
+function inspeccionesDesdeCSV(text){
+  const rows = parseCSV(text.replace(/^\uFEFF/, ''));
+  if(rows.length < 2) return [];
+  const header = rows[0].map(h=>(h||'').trim().toLowerCase());
+  const idx = (name) => header.indexOf(name);
+  const iMat = idx('matricula');
+  const iMarca = idx('marca');
+  const iBast = idx('bastidor');
+  const iFecha = idx('fecha matriculacion');
+  const iPieza = idx('pieza');
+  const iRef = idx('referencia');
+  const iEstado = idx('estado pieza');
+  if(iMat === -1) return [];
+  const get = (r, i) => (i !== -1 && r[i] !== undefined) ? String(r[i]).trim() : '';
+
+  const porMatricula = new Map();
+  rows.slice(1).forEach(r=>{
+    const matricula = get(r,iMat).toUpperCase();
+    if(!matricula) return;
+    if(!porMatricula.has(matricula)){
+      porMatricula.set(matricula, {
+        id: 'insp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+        matricula,
+        marca: get(r,iMarca),
+        bastidor: get(r,iBast).toUpperCase(),
+        fechaMatriculacion: get(r,iFecha),
+        creada: new Date().toISOString(),
+        piezas: []
+      });
+    }
+    const nombre = get(r,iPieza);
+    if(!nombre) return;
+    const estadoRaw = get(r,iEstado);
+    const estado = ['pendiente','en-pedido','pedido'].includes(estadoRaw) ? estadoRaw : 'pendiente';
+    porMatricula.get(matricula).piezas.push({
+      id: 'iz_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      nombre,
+      referencia: get(r,iRef),
+      estado
+    });
+  });
+  return Array.from(porMatricula.values());
+}
+
+document.getElementById('insp-import-btn').addEventListener('click', ()=>{
+  document.getElementById('insp-import-file').click();
+});
+
+document.getElementById('insp-import-file').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const nuevas = inspeccionesDesdeCSV(text);
+    if(nuevas.length === 0){
+      showToast('No se han encontrado inspecciones válidas en ese archivo. Comprueba que es un CSV exportado desde esta misma herramienta.', true);
+      e.target.value = '';
+      return;
+    }
+    const ok = await showConfirm(`Se han encontrado ${nuevas.length} inspecciones en el archivo. Se añadirán a las que ya tienes ahora mismo (no se borra nada existente). ¿Continuar?`);
+    if(!ok){ e.target.value = ''; return; }
+    inspecciones = inspecciones.concat(nuevas);
+    await saveInspecciones();
+    renderInspecciones();
+    showToast(`Importadas ${nuevas.length} inspecciones correctamente.`);
+  }catch(err){
+    showToast('No se pudo leer el archivo. Asegúrate de que es un .csv válido.', true);
+  }
+  e.target.value = '';
+});
+
 (async function init(){
   document.getElementById('f-fecha').value = formatFecha(todayISO());
+  resetPiezaRows();
   pedidos = await loadPedidos();
+  inspecciones = await loadInspecciones();
   lastBackupISO = await loadLastBackup();
   render();
 })();

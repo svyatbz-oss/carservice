@@ -1,5 +1,5 @@
 -- ============================================================
---  NextGo — Configuración de la base de datos en Supabase
+--  Carservice — Configuración de la base de datos en Supabase
 --  Pega y ejecuta todo esto en: Supabase → SQL Editor
 -- ============================================================
 
@@ -9,9 +9,17 @@
 create table if not exists pedidos (
   id           text primary key,
   data         jsonb default '[]'::jsonb,
+  inspecciones jsonb default '[]'::jsonb,
   last_backup  text,
   updated_at   timestamptz default now()
 );
+
+-- Si la tabla ya existía sin la columna de inspecciones, añádela:
+alter table pedidos add column if not exists inspecciones jsonb default '[]'::jsonb;
+
+-- Nota: el bastidor (VIN) de cada coche y la referencia de cada pieza se guardan
+-- DENTRO del JSON de 'inspecciones' y 'data', así que no hacen falta columnas
+-- nuevas para ellos.
 
 -- 2) Activar la seguridad por filas (obligatorio en Supabase).
 alter table pedidos enable row level security;
