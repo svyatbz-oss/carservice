@@ -791,71 +791,273 @@
     display:none;
     position:fixed;
     inset:0;
-    background:var(--bg);
     z-index:2000;
     align-items:center;
     justify-content:center;
     padding:20px;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(232,162,61,0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, rgba(27,78,247,0.06), transparent 55%),
+      var(--bg);
   }
   .login-gate.show{display:flex;}
-  .login-box{
+
+  /* Split card: dark brand panel + light form */
+  .login-card{
+    display:flex;
+    width:100%;
+    max-width:760px;
+    min-height:460px;
     background:var(--surface);
     border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:28px 24px;
-    max-width:360px;
-    width:100%;
-    box-shadow:0 8px 30px rgba(0,0,0,0.12);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 24px 60px rgba(16,18,20,0.18);
+    animation:loginRise 0.5s cubic-bezier(0.16,0.84,0.44,1) both;
   }
-  .login-box .brandmark{margin-bottom:14px;}
-  .login-box h2{
+  @keyframes loginRise{
+    from{opacity:0; transform:translateY(14px) scale(0.99);}
+    to{opacity:1; transform:none;}
+  }
+
+  /* --- Brand panel (left) --- */
+  .login-brand{
+    position:relative;
+    flex:1 1 46%;
+    padding:34px 30px;
+    color:#F4F4F5;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    background:
+      linear-gradient(160deg, #232529 0%, #16171A 55%, #0C0D0F 100%);
+    overflow:hidden;
+    isolation:isolate;
+  }
+  /* faint blueprint grid */
+  .login-brand::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size:26px 26px;
+    -webkit-mask-image:radial-gradient(120% 100% at 20% 0%, #000 40%, transparent 78%);
+    mask-image:radial-gradient(120% 100% at 20% 0%, #000 40%, transparent 78%);
+    z-index:-1;
+  }
+  .login-logo{
+    width:54px;
+    height:54px;
+    border-radius:14px;
+    background:linear-gradient(145deg, #F1B450, #E8A23D);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#1A1206;
+    align-self:flex-start;
+  }
+  .login-logo svg{width:32px; height:32px;}
+  .login-wordmark{
     font-family:'Oswald',sans-serif;
     font-weight:700;
-    font-size:1.4rem;
+    font-size:2.35rem;
+    line-height:1;
+    letter-spacing:0.01em;
     text-transform:uppercase;
-    margin:0 0 4px;
-    color:var(--accent-dark);
+    margin:0 0 8px;
+    color:#F4F4F5;
   }
-  .login-intro{color:var(--muted); font-size:0.9rem; margin:0 0 18px;}
-  .login-box label{
+  .login-wordmark span{color:var(--orange);}
+  .login-tagline{
+    color:rgba(244,244,245,0.82);
+    font-weight:500;
+    font-size:0.95rem;
+    line-height:1.4;
+    margin:0;
+    max-width:26ch;
+  }
+  .login-features{
+    list-style:none;
+    margin:22px 0 0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+  }
+  .login-features li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:0.86rem;
+    color:rgba(244,244,245,0.5);
+  }
+  .login-features svg{
+    flex:none;
+    width:18px; height:18px;
+    color:var(--orange);
+  }
+
+  /* --- Form panel (right) --- */
+  .login-form-panel{
+    flex:1 1 54%;
+    padding:38px 34px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .login-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.68rem;
+    letter-spacing:0;
+    text-transform:uppercase;
+    color:var(--orange-text);
+    margin-bottom:6px;
+  }
+  .login-heading{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:1.7rem;
+    text-transform:uppercase;
+    color:var(--accent-dark);
+    margin:0 0 4px;
+  }
+  .login-intro{color:var(--muted); font-size:0.9rem; margin:0 0 20px;}
+  .login-form-panel label{
     display:block;
     font-size:0.72rem;
     font-weight:600;
     color:var(--muted);
     text-transform:uppercase;
     letter-spacing:0.04em;
-    margin-bottom:4px;
+    margin-bottom:5px;
   }
-  .login-box input{
+  .login-input-wrap{position:relative; margin-bottom:15px;}
+  .login-input-wrap > svg{
+    position:absolute;
+    left:12px; top:50%;
+    transform:translateY(-50%);
+    width:18px; height:18px;
+    color:var(--muted);
+    pointer-events:none;
+  }
+  .login-form-panel input{
     font-family:'Inter',sans-serif;
     font-size:16px;
-    padding:9px 10px;
+    padding:11px 12px 11px 38px;
     border:1.5px solid var(--line);
-    border-radius:6px;
+    border-radius:8px;
     background:var(--surface-2);
     color:var(--ink);
     width:100%;
-    margin-bottom:14px;
   }
-  .login-box input:focus{outline:none; border-color:var(--accent); background:var(--surface);}
-  .login-msg{color:var(--alert); font-size:0.82rem; min-height:1em; margin-bottom:10px;}
-  .login-box .btn-primary{width:100%; justify-content:center;}
+  .login-form-panel input:focus{outline:none; border-color:var(--accent); background:var(--surface);}
+  .login-input-wrap:focus-within > svg{color:var(--accent);}
+  .login-toggle-pass{
+    position:absolute;
+    right:6px; top:50%;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:0.74rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:6px 8px;
+    cursor:pointer;
+  }
+  .login-toggle-pass:hover{color:var(--ink);}
+  .login-msg{color:var(--alert); font-size:0.82rem; min-height:1em; margin-bottom:12px;}
+  .login-form-panel .btn-primary{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 22px;
+    font-size:0.95rem;
+  }
+  .login-foot{
+    margin:20px 0 0;
+    font-size:0.76rem;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .login-foot svg{width:13px; height:13px; color:var(--success);}
+
+  @media (max-width:640px){
+    .login-gate{padding:0; align-items:stretch;}
+    .login-card{
+      flex-direction:column;
+      min-height:100%;
+      max-width:none;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+    }
+    .login-brand{
+      flex:none;
+      padding:26px 24px 22px;
+    }
+    .login-features{display:none;}
+    .login-wordmark{font-size:2rem;}
+    .login-form-panel{flex:1 1 auto; justify-content:flex-start; padding:30px 24px 34px;}
+  }
 </style>
 </head>
 <body>
 <div id="login-gate" class="login-gate show">
-  <div class="login-box">
-    <div class="brandmark">Carservice</div>
-    <h2>Acceso al taller</h2>
-    <p class="login-intro">Introduce el correo y la contraseña del taller para ver los pedidos e inspecciones.</p>
-    <form id="login-form" autocomplete="on">
-      <label for="login-email">Correo</label>
-      <input id="login-email" type="email" autocomplete="username" required>
-      <label for="login-password">Contraseña</label>
-      <input id="login-password" type="password" autocomplete="current-password" required>
-      <div class="login-msg" id="login-msg"></div>
-      <button type="submit" class="btn-primary" id="login-btn">Entrar</button>
-    </form>
+  <div class="login-card">
+    <aside class="login-brand">
+      <div class="login-logo" aria-label="Carservice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a3.9 3.9 0 0 0-5.2 5.2L4 17l3 3 5.5-5.5a3.9 3.9 0 0 0 5.2-5.2l-2.6 2.6-2.2-.6-.6-2.2 2.4-2.6z"/></svg>
+      </div>
+      <div>
+        <h1 class="login-wordmark">Car<span>service</span></h1>
+        <p class="login-tagline">Control de pedidos de piezas e inspecciones, para todo el taller.</p>
+      </div>
+      <ul class="login-features">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-5.5A2 2 0 0 1 9.4 10h5.2a2 2 0 0 1 1.9 1.5L18 17"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+          Pedidos e inspecciones en un solo sitio
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
+          Compartido entre todos los dispositivos
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Acceso protegido con contraseña
+        </li>
+      </ul>
+    </aside>
+    <div class="login-form-panel">
+      <div class="login-eyebrow">Acceso al taller</div>
+      <h2 class="login-heading">Inicia sesión</h2>
+      <p class="login-intro">Introduce el correo y la contraseña del taller.</p>
+      <form id="login-form" autocomplete="on">
+        <label for="login-email">Correo</label>
+        <div class="login-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <input id="login-email" type="email" autocomplete="username" placeholder="correo@taller.com" required>
+        </div>
+        <label for="login-password">Contraseña</label>
+        <div class="login-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          <button type="button" class="login-toggle-pass" id="login-toggle-pass">Ver</button>
+        </div>
+        <div class="login-msg" id="login-msg"></div>
+        <button type="submit" class="btn-primary" id="login-btn">Entrar</button>
+      </form>
+      <p class="login-foot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Herramienta interna · Conexión cifrada (HTTPS)
+      </p>
+    </div>
   </div>
 </div>
 
@@ -2510,6 +2712,14 @@ document.getElementById('login-form').addEventListener('submit', async (e)=>{
   }finally{
     btn.disabled = false; btn.textContent = 'Entrar';
   }
+});
+
+document.getElementById('login-toggle-pass').addEventListener('click', ()=>{
+  const input = document.getElementById('login-password');
+  const btn = document.getElementById('login-toggle-pass');
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'Ocultar' : 'Ver';
 });
 
 document.getElementById('logout-btn').addEventListener('click', signOut);
