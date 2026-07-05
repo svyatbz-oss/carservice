@@ -702,10 +702,56 @@
 
   @media (max-width:560px){
     form#add-form, form#insp-form{grid-template-columns:1fr;}
-    .vehicle-header{flex-wrap:wrap;}
-    .vehicle-summary{order:3; width:100%; flex-direction:row; justify-content:space-between; margin-top:4px;}
     .piece-row{flex-wrap:wrap;}
     .piece-row .ticket-actions{margin-left:auto;}
+
+    /* Cards: plate on top, summary below, badge/actions + toggle on the right */
+    .vehicle-header{
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      grid-template-areas:
+        "plate right chevron"
+        "summary summary summary";
+      align-items:center;
+      column-gap:8px;
+      row-gap:10px;
+    }
+    .vehicle-header > .plate{grid-area:plate; justify-self:start;}
+    .vehicle-header > .ticket-actions{grid-area:right; margin:0;}
+    .vehicle-header > .badge-dias{grid-area:right; justify-self:end;}
+    .vehicle-header > .chevron{
+      grid-area:chevron;
+      width:34px;
+      height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:var(--surface-2);
+    }
+    .vehicle-header > .vehicle-summary{
+      grid-area:summary;
+      order:0;
+      width:auto;
+      margin:0;
+    }
+    /* Inspection cards: stack car name + VIN */
+    #insp-list .vehicle-summary{
+      flex-direction:column;
+      align-items:flex-start;
+      gap:3px;
+    }
+    /* Pedidos cards: count on the left, total on the right */
+    #pending-list .vehicle-summary,
+    #history-list .vehicle-summary{
+      flex-direction:row;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+    }
+    #pending-list .vehicle-total,
+    #history-list .vehicle-total{flex-shrink:0;}
   }
 
   /* Custom confirm modal (replaces native confirm(), which can be blocked in embedded views) */
@@ -1683,7 +1729,8 @@ function groupHTML(g, isHistory){
 function toggleGroup(key){
   if(collapsedGroups.has(key)) collapsedGroups.delete(key);
   else collapsedGroups.add(key);
-  render();
+  if(key.indexOf('insp_') === 0) renderInspecciones();
+  else render();
 }
 
 function buildGroups(list, isHistory){
