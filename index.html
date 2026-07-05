@@ -434,6 +434,7 @@
     font-weight:600;
     color:var(--ink);
   }
+  .vehicle-name{display:none;}
   .vehicle-total{
     font-family:'JetBrains Mono',monospace;
     font-weight:700;
@@ -506,9 +507,7 @@
     font-weight:600;
     font-size:0.95rem;
     color:var(--ink);
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    overflow-wrap:break-word;
   }
   .ticket-meta{
     font-size:0.8rem;
@@ -705,30 +704,39 @@
     .piece-row{flex-wrap:wrap;}
     .piece-row .ticket-actions{margin-left:auto;}
 
-    /* Cards: plate on top, summary below, badge/actions + toggle on the right */
+    /* Cards: plate + car name on top, details below, badge/actions + toggle on the right */
     .vehicle-header{
       display:grid;
-      grid-template-columns:1fr auto auto;
+      grid-template-columns:auto 1fr auto auto;
       grid-template-areas:
-        "plate right chevron"
-        "summary summary summary";
+        "plate name right chevron"
+        "summary summary summary summary";
       align-items:center;
       column-gap:8px;
       row-gap:10px;
     }
     .vehicle-header > .plate{grid-area:plate; justify-self:start;}
+    .vehicle-header > .vehicle-name{
+      grid-area:name;
+      display:block;
+      justify-self:start;
+      font-weight:600;
+      font-size:0.9rem;
+      color:var(--ink);
+      overflow-wrap:anywhere;
+    }
     .vehicle-header > .ticket-actions{grid-area:right; margin:0;}
     .vehicle-header > .badge-dias{grid-area:right; justify-self:end;}
     .vehicle-header > .chevron{
       grid-area:chevron;
-      width:34px;
-      height:34px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid var(--line);
-      border-radius:8px;
-      background:var(--surface-2);
+      border:none;
+      background:none;
+      width:auto;
+      height:auto;
+      font-size:1.7rem;
+      font-weight:700;
+      line-height:1;
+      padding:0 2px;
     }
     .vehicle-header > .vehicle-summary{
       grid-area:summary;
@@ -736,6 +744,12 @@
       width:auto;
       margin:0;
     }
+    /* On mobile the car name sits by the plate, so drop the inline copy */
+    .vehicle-summary .vehicle-marca{display:none;}
+
+    /* Pedidos piece rows: give the part name the full row width */
+    #pending-list .piece-row .piece-body,
+    #history-list .piece-row .piece-body{flex:1 1 100%;}
     /* Inspection cards: stack car name + VIN */
     #insp-list .vehicle-summary{
       flex-direction:column;
@@ -1704,14 +1718,16 @@ function groupHTML(g, isHistory){
     : `<span class="vehicle-total">${formatEuro(totalLista)}</span>`;
 
   const marcaGrupo = g.items.map(p=>p.marca).find(m=>m) || '';
+  const nameHTML = marcaGrupo ? `<span class="vehicle-name">${escapeHTML(marcaGrupo)}</span>` : '';
   const countLine = marcaGrupo
-    ? `<span class="vehicle-marca">${escapeHTML(marcaGrupo)}</span> · ${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`
+    ? `<span class="vehicle-marca">${escapeHTML(marcaGrupo)} · </span>${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`
     : `${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`;
 
   return `
     <div class="vehicle-group ${urgencyCls}">
       <div class="vehicle-header" onclick="toggleGroup('${groupKey}')">
         ${plateHTML(g.matricula)}
+        ${nameHTML}
         <div class="vehicle-summary">
           <span class="vehicle-count">${countLine}</span>
           ${totalHTML}
@@ -2377,8 +2393,9 @@ function inspCardHTML(insp){
     <div class="vehicle-group ${allDone ? 'done' : ''}">
       <div class="vehicle-header" onclick="toggleGroup('insp_${insp.id}')">
         ${plateHTML(insp.matricula)}
+        ${marca ? `<span class="vehicle-name">${marca}</span>` : ''}
         <div class="vehicle-summary">
-          <span class="vehicle-count">${marca ? `<span class="vehicle-marca">${marca}</span> · ` : ''}${resumen}</span>
+          <span class="vehicle-count">${marca ? `<span class="vehicle-marca">${marca} · </span>` : ''}${resumen}</span>
           ${insp.bastidor ? `<span class="vehicle-fecha-mat">Bastidor ${escapeHTML(insp.bastidor)}</span>` : ''}
           ${insp.fechaMatriculacion ? `<span class="vehicle-fecha-mat">Matriculado ${formatFecha(insp.fechaMatriculacion)}</span>` : ''}
         </div>
