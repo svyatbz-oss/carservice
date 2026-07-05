@@ -770,11 +770,98 @@
     transform:translate(-50%, 0);
   }
   .toast.error{background:var(--alert);}
+
+  /* Login gate */
+  header.top{position:relative;}
+  .logout-btn{
+    position:absolute;
+    top:0;
+    right:0;
+    background:none;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-family:'Inter',sans-serif;
+    font-size:0.78rem;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .logout-btn:hover{border-color:var(--accent); color:var(--ink);}
+  .login-gate{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    z-index:2000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .login-gate.show{display:flex;}
+  .login-box{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 24px;
+    max-width:360px;
+    width:100%;
+    box-shadow:0 8px 30px rgba(0,0,0,0.12);
+  }
+  .login-box .brandmark{margin-bottom:14px;}
+  .login-box h2{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:1.4rem;
+    text-transform:uppercase;
+    margin:0 0 4px;
+    color:var(--accent-dark);
+  }
+  .login-intro{color:var(--muted); font-size:0.9rem; margin:0 0 18px;}
+  .login-box label{
+    display:block;
+    font-size:0.72rem;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:4px;
+  }
+  .login-box input{
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    padding:9px 10px;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    background:var(--surface-2);
+    color:var(--ink);
+    width:100%;
+    margin-bottom:14px;
+  }
+  .login-box input:focus{outline:none; border-color:var(--accent); background:var(--surface);}
+  .login-msg{color:var(--alert); font-size:0.82rem; min-height:1em; margin-bottom:10px;}
+  .login-box .btn-primary{width:100%; justify-content:center;}
 </style>
 </head>
 <body>
+<div id="login-gate" class="login-gate show">
+  <div class="login-box">
+    <div class="brandmark">Carservice</div>
+    <h2>Acceso al taller</h2>
+    <p class="login-intro">Introduce el correo y la contraseña del taller para ver los pedidos e inspecciones.</p>
+    <form id="login-form" autocomplete="on">
+      <label for="login-email">Correo</label>
+      <input id="login-email" type="email" autocomplete="username" required>
+      <label for="login-password">Contraseña</label>
+      <input id="login-password" type="password" autocomplete="current-password" required>
+      <div class="login-msg" id="login-msg"></div>
+      <button type="submit" class="btn-primary" id="login-btn">Entrar</button>
+    </form>
+  </div>
+</div>
+
 <div class="wrap">
   <header class="top">
+    <button type="button" id="logout-btn" class="logout-btn">Salir</button>
     <div class="brandmark">Carservice</div>
     <h1 id="page-title">Pedidos de piezas</h1>
     <p class="subtitle" id="page-subtitle">Anota el pedido en cuanto cuelgues el WhatsApp con el proveedor. No se pierde nada.</p>
@@ -800,10 +887,6 @@
       <div class="field full">
         <label for="f-pieza">Pieza</label>
         <input id="f-pieza" type="text" placeholder="Pastillas de freno delanteras" required maxlength="80">
-      </div>
-      <div class="field full">
-        <label for="f-referencia">Referencia — opcional</label>
-        <input id="f-referencia" type="text" placeholder="Nº de referencia" maxlength="50" autocomplete="off">
       </div>
       <div class="field full">
         <label for="f-proveedor">Proveedor</label>
@@ -979,15 +1062,94 @@ let lastBackupISO = null;
 
 const usingSupabase = () => SUPABASE_URL && SUPABASE_ANON_KEY;
 
+// --- Autenticación (login del taller) --------------------------------------
+const AUTH_KEY = 'carservice-session';
+let authSession = null; // { access_token, refresh_token, expires_at }
+
+function loadStoredSession(){
+  try{
+    const raw = localStorage.getItem(AUTH_KEY);
+    authSession = raw ? JSON.parse(raw) : null;
+  }catch(e){ authSession = null; }
+}
+function storeSession(j){
+  const expiresAt = j.expires_at ? j.expires_at * 1000 : (Date.now() + (j.expires_in || 3600) * 1000);
+  authSession = { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: expiresAt };
+  try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authSession)); }catch(e){}
+}
+function clearStoredSession(){
+  authSession = null;
+  try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
+}
+function hasValidSession(){ return !!(authSession && authSession.access_token); }
+
+async function signIn(email, password){
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  if(!res.ok){
+    throw new Error(res.status === 400 ? 'Correo o contraseña incorrectos.' : 'No se pudo iniciar sesión. Revisa tu conexión.');
+  }
+  storeSession(await res.json());
+}
+
+async function refreshSession(){
+  if(!authSession || !authSession.refresh_token) return false;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: authSession.refresh_token })
+    });
+    if(!res.ok) return false;
+    storeSession(await res.json());
+    return true;
+  }catch(e){ return false; }
+}
+
+async function signOut(){
+  if(authSession && authSession.access_token){
+    try{
+      await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${authSession.access_token}` }
+      });
+    }catch(e){}
+  }
+  clearStoredSession();
+  showLoginGate();
+}
+
 // --- Supabase REST helpers -------------------------------------------------
+function authBearer(){
+  return (authSession && authSession.access_token) ? authSession.access_token : SUPABASE_ANON_KEY;
+}
+
+async function sbFetch(url, options = {}){
+  const doFetch = () => fetch(url, Object.assign({}, options, {
+    headers: Object.assign({}, options.headers, {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${authBearer()}`
+    })
+  }));
+  let res = await doFetch();
+  if(res.status === 401 && authSession){
+    const refreshed = await refreshSession();
+    if(refreshed) res = await doFetch();
+    if(res.status === 401){
+      clearStoredSession();
+      showLoginGate();
+      throw new Error('Sesión caducada');
+    }
+  }
+  return res;
+}
+
 async function sbGet(){
   const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,inspecciones,last_backup`;
-  const res = await fetch(url, {
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-    }
-  });
+  const res = await sbFetch(url);
   if(!res.ok) throw new Error('Supabase GET ' + res.status);
   const rows = await res.json();
   return rows[0] || null;
@@ -996,14 +1158,9 @@ async function sbGet(){
 async function sbUpsert(fields){
   const body = Object.assign({ id: SUPABASE_ROW_ID }, fields);
   const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`;
-  const res = await fetch(url, {
+  const res = await sbFetch(url, {
     method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'resolution=merge-duplicates'
-    },
+    headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
     body: JSON.stringify(body)
   });
   if(!res.ok) throw new Error('Supabase UPSERT ' + res.status);
@@ -1264,7 +1421,7 @@ function pieceRowHTML(p, isHistory){
     <div class="piece-row">
       <div class="piece-body">
         <div class="ticket-pieza">${escapeHTML(p.pieza)}</div>
-        <div class="ticket-meta">${escapeHTML(p.proveedor)} · pedido ${formatFecha(p.fechaPedido)}${p.referencia ? ' · Ref: ' + escapeHTML(p.referencia) : ''}</div>
+        <div class="ticket-meta">${escapeHTML(p.proveedor)} · pedido ${formatFecha(p.fechaPedido)}</div>
       </div>
       ${precioHTML}
       ${right}
@@ -1470,7 +1627,6 @@ function startEdit(id){
   document.getElementById('f-matricula').value = p.matricula;
   document.getElementById('f-marca').value = p.marca || '';
   document.getElementById('f-pieza').value = p.pieza;
-  document.getElementById('f-referencia').value = p.referencia || '';
   document.getElementById('f-proveedor').value = p.proveedor;
   document.getElementById('f-precio').value = p.precio;
   document.getElementById('f-descuento').value = p.descuento || '';
@@ -1592,7 +1748,6 @@ async function handleAddSubmit(){
   const matricula = document.getElementById('f-matricula').value.trim().toUpperCase();
   const marca = document.getElementById('f-marca').value.trim();
   const pieza = document.getElementById('f-pieza').value.trim();
-  const referencia = document.getElementById('f-referencia').value.trim();
   const proveedor = document.getElementById('f-proveedor').value.trim();
   const precio = parseFloat(document.getElementById('f-precio').value);
   const descuentoRaw = document.getElementById('f-descuento').value;
@@ -1619,7 +1774,6 @@ async function handleAddSubmit(){
       p.matricula = matricula;
       p.marca = marca;
       p.pieza = pieza;
-      p.referencia = referencia;
       p.proveedor = proveedor;
       p.precio = precio;
       p.descuento = descuento;
@@ -1634,7 +1788,7 @@ async function handleAddSubmit(){
 
   const nuevo = {
     id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-    matricula, marca, pieza, referencia, proveedor, precio, descuento, fechaPedido,
+    matricula, marca, pieza, proveedor, precio, descuento, fechaPedido,
     estado: 'pedido'
   };
   pedidos.push(nuevo);
@@ -1694,9 +1848,9 @@ function saveOrShareFile(blob, filename, mimeType, shareTitle){
 }
 
 document.getElementById('export-btn').addEventListener('click', async ()=>{
-  const rows = [['Matricula','Marca','Pieza','Referencia','Proveedor','Precio sin descuento','Descuento (%)','Precio con descuento','Fecha pedido','Estado','Fecha recibido']];
+  const rows = [['Matricula','Marca','Pieza','Proveedor','Precio sin descuento','Descuento (%)','Precio con descuento','Fecha pedido','Estado','Fecha recibido']];
   pedidos.forEach(p=>{
-    rows.push([p.matricula, p.marca||'', p.pieza, p.referencia||'', p.proveedor, p.precio, p.descuento||0, precioFinal(p), p.fechaPedido, p.estado, p.fechaRecibido||'']);
+    rows.push([p.matricula, p.marca||'', p.pieza, p.proveedor, p.precio, p.descuento||0, precioFinal(p), p.fechaPedido, p.estado, p.fechaRecibido||'']);
   });
   const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -1843,7 +1997,6 @@ function pedidosDesdeCSV(text){
   const iMat = idx('matricula');
   const iMarca = idx('marca');
   const iPieza = idx('pieza');
-  const iRef = idx('referencia');
   const iProv = idx('proveedor');
   const iPrecio = idx('precio sin descuento') !== -1 ? idx('precio sin descuento') : idx('precio');
   const iDesc = idx('descuento (%)');
@@ -1857,7 +2010,6 @@ function pedidosDesdeCSV(text){
     matricula: (get(r,iMat)||'').trim().toUpperCase(),
     marca: (get(r,iMarca)||'').trim(),
     pieza: (get(r,iPieza)||'').trim(),
-    referencia: (get(r,iRef)||'').trim(),
     proveedor: (get(r,iProv)||'').trim(),
     precio: parseFloat(get(r,iPrecio)) || 0,
     descuento: parseFloat(get(r,iDesc)) || 0,
@@ -2189,7 +2341,6 @@ async function pedirPieza(inspId, piezaId){
   document.getElementById('f-matricula').value = insp.matricula;
   document.getElementById('f-marca').value = insp.marca || '';
   document.getElementById('f-pieza').value = pz.nombre;
-  document.getElementById('f-referencia').value = pz.referencia || '';
   document.getElementById('f-proveedor').value = '';
   document.getElementById('f-precio').value = '';
   document.getElementById('f-descuento').value = '';
@@ -2320,13 +2471,66 @@ document.getElementById('insp-import-file').addEventListener('change', async (e)
   e.target.value = '';
 });
 
-(async function init(){
-  document.getElementById('f-fecha').value = formatFecha(todayISO());
-  resetPiezaRows();
+// --- Login gate + arranque -------------------------------------------------
+function showLoginGate(){
+  document.getElementById('login-gate').classList.add('show');
+  document.getElementById('login-password').value = '';
+}
+function hideLoginGate(){
+  document.getElementById('login-gate').classList.remove('show');
+}
+
+let appStarted = false;
+async function startApp(){
+  hideLoginGate();
+  if(!appStarted){
+    appStarted = true;
+    document.getElementById('f-fecha').value = formatFecha(todayISO());
+    resetPiezaRows();
+  }
   pedidos = await loadPedidos();
   inspecciones = await loadInspecciones();
   lastBackupISO = await loadLastBackup();
   render();
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  const btn = document.getElementById('login-btn');
+  msg.textContent = '';
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  try{
+    await signIn(email, password);
+    await startApp();
+  }catch(err){
+    msg.textContent = err.message || 'No se pudo iniciar sesión.';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', signOut);
+
+(async function init(){
+  if(!usingSupabase()){
+    // Modo local (sin base de datos): no hace falta login.
+    await startApp();
+    return;
+  }
+  loadStoredSession();
+  if(authSession && authSession.expires_at && authSession.expires_at < Date.now() + 10000){
+    const ok = await refreshSession();
+    if(!ok) clearStoredSession();
+  }
+  if(hasValidSession()){
+    try{ await startApp(); }
+    catch(e){ showLoginGate(); }
+  }else{
+    showLoginGate();
+  }
 })();
 </script>
 </body>

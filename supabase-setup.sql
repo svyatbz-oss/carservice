@@ -24,25 +24,37 @@ alter table pedidos add column if not exists inspecciones jsonb default '[]'::js
 -- 2) Activar la seguridad por filas (obligatorio en Supabase).
 alter table pedidos enable row level security;
 
--- 3) Permitir lectura y escritura con la clave pública "anon".
---    Esto hace que la app funcione sin login. Para un taller
---    (herramienta interna) suele ser suficiente.
---    Si más adelante quieres restringir el acceso con usuarios,
---    se sustituyen estas políticas por otras basadas en auth.
+-- 3) SOLO usuarios con sesión iniciada pueden leer y escribir.
+--    Con estas políticas, cualquiera que tenga solo la URL y la clave
+--    pública NO puede ver ni tocar los datos: hace falta iniciar sesión
+--    (Supabase Auth) desde la app. Esta es la parte que protege los datos.
+--
+--    IMPORTANTE: ejecuta este bloque SOLO cuando la versión de la app con
+--    login ya esté publicada y hayas creado el usuario del taller
+--    (Authentication → Users → Add user). Si lo ejecutas antes, la app
+--    dejará de cargar hasta que exista el login.
 
+-- Quitar las políticas públicas antiguas si existían.
 drop policy if exists "lectura publica" on pedidos;
-create policy "lectura publica"
+drop policy if exists "escritura publica" on pedidos;
+drop policy if exists "actualizacion publica" on pedidos;
+
+drop policy if exists "lectura autenticada" on pedidos;
+create policy "lectura autenticada"
   on pedidos for select
+  to authenticated
   using (true);
 
-drop policy if exists "escritura publica" on pedidos;
-create policy "escritura publica"
+drop policy if exists "escritura autenticada" on pedidos;
+create policy "escritura autenticada"
   on pedidos for insert
+  to authenticated
   with check (true);
 
-drop policy if exists "actualizacion publica" on pedidos;
-create policy "actualizacion publica"
+drop policy if exists "actualizacion autenticada" on pedidos;
+create policy "actualizacion autenticada"
   on pedidos for update
+  to authenticated
   using (true)
   with check (true);
 
