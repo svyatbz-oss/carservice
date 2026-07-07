@@ -2153,7 +2153,8 @@ document.getElementById('export-btn').addEventListener('click', async ()=>{
   pedidos.forEach(p=>{
     rows.push([p.matricula, p.marca||'', p.pieza, p.proveedor, p.precio, p.descuento||0, precioFinal(p), p.fechaPedido, p.estado, p.fechaRecibido||'']);
   });
-  const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  // ';' + CRLF + BOM: se abre bien en Excel (Windows), Numbers (iOS) y Sheets (Android)
+  const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   try{
     const result = await saveOrShareFile(blob, 'pedidos_piezas.csv', 'text/csv', 'Pedidos de piezas');
@@ -2267,7 +2268,23 @@ function generarPDF(){
 
 document.getElementById('pdf-btn').addEventListener('click', generarPDF);
 
+function detectCSVDelimiter(text){
+  // Look at the first line only, ignoring separators inside quotes.
+  let commas = 0, semis = 0, inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(c === '"'){ inQuotes = !inQuotes; continue; }
+    if(!inQuotes){
+      if(c === '\n' || c === '\r') break;
+      if(c === ',') commas++;
+      else if(c === ';') semis++;
+    }
+  }
+  return semis > commas ? ';' : ',';
+}
+
 function parseCSV(text){
+  const delim = detectCSVDelimiter(text);
   const rows = [];
   let i = 0, field = '', row = [], inQuotes = false;
   while(i < text.length){
@@ -2280,7 +2297,7 @@ function parseCSV(text){
       field += c; i++; continue;
     } else {
       if(c === '"'){ inQuotes = true; i++; continue; }
-      if(c === ','){ row.push(field); field = ''; i++; continue; }
+      if(c === delim){ row.push(field); field = ''; i++; continue; }
       if(c === '\r'){ i++; continue; }
       if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
       field += c; i++; continue;
@@ -2692,7 +2709,8 @@ document.getElementById('insp-export-btn').addEventListener('click', async ()=>{
       });
     }
   });
-  const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  // ';' + CRLF + BOM: se abre bien en Excel (Windows), Numbers (iOS) y Sheets (Android)
+  const csv = '\uFEFF' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   try{
     const result = await saveOrShareFile(blob, 'inspecciones.csv', 'text/csv', 'Inspecciones');
