@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carservice · Control de Piezas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#1F2023;
@@ -28,22 +28,22 @@
     --success-text:#0B5B54;
     --line:#E1E1E3;
     --muted:#67696E;
-    --radius:10px;
+    --radius:16px;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
     background:var(--bg);
     color:var(--ink);
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     -webkit-font-smoothing:antialiased;
     -webkit-text-size-adjust:100%;
     -webkit-tap-highlight-color:transparent;
   }
   .wrap{
-    max-width:880px;
+    max-width:1140px;
     margin:0 auto;
-    padding:20px 16px 64px;
+    padding:24px 24px 64px;
   }
   header.top{
     margin-bottom:18px;
@@ -56,7 +56,7 @@
     text-transform:uppercase;
   }
   h1{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     font-weight:700;
     font-size:1.9rem;
     text-transform:uppercase;
@@ -69,42 +69,62 @@
     font-size:0.92rem;
     margin:0;
   }
-  .brandmark{
-    font-family:'Oswald',sans-serif;
-    font-weight:700;
-    font-size:0.85rem;
-    text-transform:uppercase;
-    letter-spacing:0.18em;
-    color:var(--muted);
-    margin-bottom:6px;
-  }
 
-  /* Tabs */
+  /* Top app bar (brand + tabs + logout) */
+  .topbar{
+    background:linear-gradient(160deg, #232529 0%, #16171A 60%, #0C0D0F 100%);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  .topbar-inner{
+    max-width:1140px;
+    margin:0 auto;
+    padding:0 24px;
+    display:flex;
+    align-items:stretch;
+    gap:26px;
+    min-height:56px;
+  }
+  .brandmark{
+    font-family:'Outfit',sans-serif;
+    font-weight:700;
+    font-size:1.2rem;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    color:#F4F4F5;
+    display:flex;
+    align-items:center;
+  }
+  .brandmark span{color:var(--orange);}
+
+  /* Tabs (inside the top bar) */
   .tabs{
     display:flex;
-    gap:4px;
-    margin-top:18px;
-    border-bottom:2px solid var(--line);
+    gap:2px;
+    align-items:stretch;
   }
   .tab{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     font-size:0.9rem;
     text-transform:uppercase;
     letter-spacing:0.05em;
     background:transparent;
-    color:var(--muted);
-    padding:10px 18px;
+    color:rgba(244,244,245,0.6);
+    padding:0 18px;
     border:none;
     border-bottom:3px solid transparent;
-    margin-bottom:-2px;
     border-radius:0;
     cursor:pointer;
     font-weight:600;
+    display:flex;
+    align-items:center;
   }
-  .tab:hover{color:var(--accent);}
+  .tab:hover{color:#F4F4F5;}
   .tab.active{
-    color:var(--accent-dark);
-    border-bottom-color:var(--accent-dark);
+    color:#fff;
+    border-bottom-color:var(--orange);
   }
 
   /* Quick add card */
@@ -117,7 +137,7 @@
     box-shadow:0 1px 3px rgba(60,52,20,0.05);
   }
   .add-card h2{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     font-size:0.95rem;
     text-transform:uppercase;
     letter-spacing:0.06em;
@@ -132,7 +152,7 @@
   .field{display:flex; flex-direction:column; gap:4px;}
   .field.full{grid-column:1 / -1;}
   textarea{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-size:16px;
     padding:9px 10px;
     border:1.5px solid var(--line);
@@ -158,7 +178,7 @@
     letter-spacing:0.04em;
   }
   input{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-size:16px;
     padding:9px 10px;
     border:1.5px solid var(--line);
@@ -192,7 +212,7 @@
     align-items:center;
     justify-content:center;
     color:var(--ink);
-    border-radius:6px;
+    border-radius:1000px;
     cursor:pointer;
     transition:transform 0.1s ease;
   }
@@ -208,7 +228,7 @@
     z-index:20;
     background:var(--surface);
     border:1px solid var(--line);
-    border-radius:12px;
+    border-radius:16px;
     box-shadow:0 10px 28px rgba(20,18,12,0.14);
     padding:16px;
     width:320px;
@@ -221,7 +241,7 @@
     margin-bottom:12px;
   }
   .calendar-popup-title{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     font-weight:600;
     font-size:1.05rem;
     text-transform:capitalize;
@@ -231,7 +251,7 @@
     height:36px;
     border:1px solid var(--line);
     background:var(--surface-2);
-    border-radius:8px;
+    border-radius:1000px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -260,8 +280,8 @@
     aspect-ratio:1;
     border:none;
     background:none;
-    border-radius:8px;
-    font-family:'Inter',sans-serif;
+    border-radius:1000px;
+    font-family:'DM Sans',sans-serif;
     font-size:0.92rem;
     cursor:pointer;
     color:var(--ink);
@@ -285,11 +305,11 @@
     margin-top:4px;
   }
   button{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-weight:600;
     font-size:0.9rem;
     border:none;
-    border-radius:8px;
+    border-radius:1000px;
     cursor:pointer;
     transition:opacity 0.15s ease, transform 0.1s ease;
     -webkit-appearance:none;
@@ -381,7 +401,7 @@
     margin:24px 0 10px;
   }
   .section-head h3{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     text-transform:uppercase;
     font-size:1rem;
     letter-spacing:0.05em;
@@ -432,6 +452,7 @@
   }
   .vehicle-marca{
     font-weight:600;
+    font-size:14px;
     color:var(--ink);
   }
   .vehicle-name{display:none;}
@@ -442,7 +463,7 @@
     color:var(--accent-dark);
   }
   .vehicle-total-strike{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-weight:500;
     font-size:0.74rem;
     color:var(--muted);
@@ -504,7 +525,7 @@
   }
 
   .ticket-pieza{
-    font-weight:600;
+    font-weight:500;
     font-size:0.95rem;
     color:var(--ink);
     overflow-wrap:break-word;
@@ -532,7 +553,7 @@
     white-space:nowrap;
   }
   .precio-label{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-size:0.65rem;
     font-weight:600;
     color:var(--muted);
@@ -543,7 +564,7 @@
   .precio-row.final .precio-val{font-size:0.97rem; font-weight:700; color:var(--ink);}
   .precio-row.final.has-discount .precio-val{color:var(--success);}
   .descuento-pct{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-size:0.65rem;
     font-weight:700;
     color:var(--success-text);
@@ -574,7 +595,7 @@
     font-size:0.85rem;
     padding:4px 8px;
     border:1px solid var(--line);
-    border-radius:6px;
+    border-radius:1000px;
   }
   .btn-edit:hover{color:var(--accent); border-color:var(--accent);}
   .btn-devolver{
@@ -599,7 +620,7 @@
     font-size:1rem;
     padding:4px 8px;
     border:1px solid var(--line);
-    border-radius:6px;
+    border-radius:1000px;
   }
   .btn-del:hover{color:var(--alert); border-color:var(--alert);}
 
@@ -627,7 +648,7 @@
   /* Inspection cards */
   .insp-piece-row .piece-body{padding-right:8px;}
   .insp-pieza-nombre{
-    font-weight:600;
+    font-weight:500;
     font-size:0.95rem;
     color:var(--ink);
   }
@@ -638,7 +659,7 @@
   .insp-state{
     font-size:0.72rem;
     font-weight:600;
-    padding:2px 9px;
+    padding:4px 12px;
     border-radius:999px;
     white-space:nowrap;
   }
@@ -663,7 +684,7 @@
     background:transparent;
     color:var(--muted);
     border:1px solid var(--line);
-    border-radius:6px;
+    border-radius:1000px;
     padding:8px 10px;
     font-size:1rem;
     flex-shrink:0;
@@ -674,7 +695,7 @@
     background:var(--surface-2);
     color:var(--accent);
     border:1px dashed var(--line);
-    border-radius:6px;
+    border-radius:1000px;
     padding:8px 12px;
     font-size:0.82rem;
     font-weight:600;
@@ -704,6 +725,19 @@
     .piece-row{flex-wrap:wrap;}
     .piece-row .ticket-actions{margin-left:auto;}
 
+    /* Top bar: brand + logout on the first row, tabs full-width below */
+    .topbar-inner{
+      flex-wrap:wrap;
+      padding:10px 14px 0;
+      gap:0 10px;
+      min-height:0;
+    }
+    .brandmark{order:1;}
+    .logout-btn{order:2;}
+    .tabs{order:3; width:100%; margin-top:6px;}
+    .tab{flex:1; justify-content:center; padding:10px 8px;}
+    .wrap{padding:20px 16px 64px;}
+
     /* Cards: plate + car name on top, details below, badge/actions + toggle on the right */
     .vehicle-header{
       display:grid;
@@ -721,7 +755,7 @@
       display:block;
       justify-self:start;
       font-weight:600;
-      font-size:0.9rem;
+      font-size:14px;
       color:var(--ink);
       overflow-wrap:anywhere;
     }
@@ -832,21 +866,19 @@
   .toast.error{background:var(--alert);}
 
   /* Login gate */
-  header.top{position:relative;}
   .logout-btn{
-    position:absolute;
-    top:0;
-    right:0;
+    margin-left:auto;
+    align-self:center;
     background:none;
-    border:1px solid var(--line);
-    color:var(--muted);
-    font-family:'Inter',sans-serif;
+    border:1px solid rgba(244,244,245,0.25);
+    color:rgba(244,244,245,0.75);
+    font-family:'DM Sans',sans-serif;
     font-size:0.78rem;
     padding:6px 12px;
-    border-radius:6px;
+    border-radius:1000px;
     cursor:pointer;
   }
-  .logout-btn:hover{border-color:var(--accent); color:var(--ink);}
+  .logout-btn:hover{border-color:var(--orange); color:#fff;}
   .login-gate{
     display:none;
     position:fixed;
@@ -919,7 +951,7 @@
   }
   .login-logo svg{width:32px; height:32px;}
   .login-wordmark{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     font-weight:700;
     font-size:2.35rem;
     line-height:1;
@@ -975,7 +1007,7 @@
     margin-bottom:6px;
   }
   .login-heading{
-    font-family:'Oswald',sans-serif;
+    font-family:'Outfit',sans-serif;
     font-weight:700;
     font-size:1.7rem;
     text-transform:uppercase;
@@ -1002,7 +1034,7 @@
     pointer-events:none;
   }
   .login-form-panel input{
-    font-family:'Inter',sans-serif;
+    font-family:'DM Sans',sans-serif;
     font-size:16px;
     padding:11px 12px 11px 38px;
     border:1.5px solid var(--line);
@@ -1121,18 +1153,22 @@
   </div>
 </div>
 
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brandmark">Car<span>service</span></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" id="tab-inspecciones" role="tab" onclick="switchView('inspecciones')">Inspecciones</button>
+      <button class="tab active" id="tab-pedidos" role="tab" onclick="switchView('pedidos')">Pedidos</button>
+    </nav>
+    <button type="button" id="logout-btn" class="logout-btn">Salir</button>
+  </div>
+</header>
+
 <div class="wrap">
   <header class="top">
-    <button type="button" id="logout-btn" class="logout-btn">Salir</button>
-    <div class="brandmark">Carservice</div>
     <h1 id="page-title">Pedidos de piezas</h1>
     <p class="subtitle" id="page-subtitle">Anota el pedido en cuanto cuelgues el WhatsApp con el proveedor. No se pierde nada.</p>
   </header>
-
-  <nav class="tabs" role="tablist">
-    <button class="tab" id="tab-inspecciones" role="tab" onclick="switchView('inspecciones')">Inspecciones</button>
-    <button class="tab active" id="tab-pedidos" role="tab" onclick="switchView('pedidos')">Pedidos</button>
-  </nav>
 
   <section id="view-pedidos" class="view">
   <div class="add-card">
