@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carservice · Control de Piezas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1F2023;
+    --ink:#131410;
     --bg:#F6F6F7;
     --surface:#FFFFFF;
     --surface-2:#F2F2F3;
-    --accent:#242424;
-    --accent-dark:#0A0A0A;
+    --accent:#131410;
+    --accent-dark:#131410;
     --orange:#E8A23D;
     --orange-soft:rgba(232,162,61,0.45);
     --orange-bg:#FDF3E7;
@@ -35,7 +35,7 @@
     margin:0;
     background:var(--bg);
     color:var(--ink);
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     -webkit-font-smoothing:antialiased;
     -webkit-text-size-adjust:100%;
     -webkit-tap-highlight-color:transparent;
@@ -56,7 +56,7 @@
     text-transform:uppercase;
   }
   h1{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-weight:700;
     font-size:1.9rem;
     text-transform:uppercase;
@@ -72,8 +72,8 @@
 
   /* Top app bar (brand + tabs + logout) */
   .topbar{
-    background:linear-gradient(160deg, #232529 0%, #16171A 60%, #0C0D0F 100%);
-    border-bottom:1px solid rgba(255,255,255,0.08);
+    background:var(--surface-2);
+    border-bottom:1px solid var(--line);
     position:sticky;
     top:0;
     z-index:100;
@@ -88,12 +88,12 @@
     min-height:56px;
   }
   .brandmark{
-    font-family:'Outfit',sans-serif;
-    font-weight:700;
+    font-family:'Barlow',sans-serif;
+    font-weight:800;
     font-size:1.2rem;
     text-transform:uppercase;
     letter-spacing:0.01em;
-    color:#F4F4F5;
+    color:var(--accent-dark);
     display:flex;
     align-items:center;
   }
@@ -106,12 +106,12 @@
     align-items:stretch;
   }
   .tab{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:0.9rem;
     text-transform:uppercase;
     letter-spacing:0.05em;
     background:transparent;
-    color:rgba(244,244,245,0.6);
+    color:var(--muted);
     padding:0 18px;
     border:none;
     border-bottom:3px solid transparent;
@@ -121,10 +121,10 @@
     display:flex;
     align-items:center;
   }
-  .tab:hover{color:#F4F4F5;}
+  .tab:hover{color:var(--accent-dark);}
   .tab.active{
-    color:#fff;
-    border-bottom-color:var(--orange);
+    color:var(--accent-dark);
+    border-bottom-color:#131410;
   }
 
   /* Quick add card */
@@ -137,7 +137,7 @@
     box-shadow:0 1px 3px rgba(60,52,20,0.05);
   }
   .add-card h2{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:0.95rem;
     text-transform:uppercase;
     letter-spacing:0.06em;
@@ -152,7 +152,7 @@
   .field{display:flex; flex-direction:column; gap:4px;}
   .field.full{grid-column:1 / -1;}
   textarea{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:16px;
     padding:9px 10px;
     border:1.5px solid var(--line);
@@ -178,7 +178,7 @@
     letter-spacing:0.04em;
   }
   input{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:16px;
     padding:9px 10px;
     border:1.5px solid var(--line);
@@ -200,25 +200,25 @@
   .date-input-wrap input[type="text"]{padding-right:56px;}
   .calendar-btn{
     position:absolute;
-    right:3px;
+    right:6px;
     top:50%;
     transform:translateY(-50%);
-    width:44px;
-    height:calc(100% - 6px);
-    background:var(--surface-2);
-    border:1px solid var(--line);
+    width:34px;
+    height:34px;
+    background:transparent;
+    border:none;
     padding:0;
     display:flex;
     align-items:center;
     justify-content:center;
-    color:var(--ink);
-    border-radius:1000px;
+    color:var(--muted);
+    border-radius:0;
     cursor:pointer;
     transition:transform 0.1s ease;
   }
   .calendar-btn:active{transform:translateY(calc(-50% + 2px));}
   .calendar-btn svg{display:block; width:22px; height:22px;}
-  .date-input-wrap:hover .calendar-btn{border-color:var(--accent); color:var(--accent);}
+  .date-input-wrap:hover .calendar-btn{color:var(--accent);}
 
   .calendar-popup{
     display:none;
@@ -241,7 +241,7 @@
     margin-bottom:12px;
   }
   .calendar-popup-title{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-weight:600;
     font-size:1.05rem;
     text-transform:capitalize;
@@ -281,7 +281,7 @@
     border:none;
     background:none;
     border-radius:1000px;
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:0.92rem;
     cursor:pointer;
     color:var(--ink);
@@ -305,7 +305,7 @@
     margin-top:4px;
   }
   button{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-weight:600;
     font-size:0.9rem;
     border:none;
@@ -401,7 +401,7 @@
     margin:24px 0 10px;
   }
   .section-head h3{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     text-transform:uppercase;
     font-size:1rem;
     letter-spacing:0.05em;
@@ -443,27 +443,29 @@
     min-width:0;
     display:flex;
     flex-direction:column;
-    gap:2px;
-  }
-  .vehicle-count{
-    font-size:0.78rem;
-    color:var(--muted);
-    font-weight:500;
+    gap:1px;
   }
   .vehicle-marca{
     font-weight:600;
-    font-size:14px;
+    font-size:18px;
+    line-height:1.25;
     color:var(--ink);
+  }
+  .vehicle-count{
+    font-size:0.72rem;
+    color:var(--muted);
+    font-weight:500;
   }
   .vehicle-name{display:none;}
   .vehicle-total{
     font-family:'JetBrains Mono',monospace;
     font-weight:700;
-    font-size:0.95rem;
+    font-size:1.05rem;
     color:var(--accent-dark);
+    margin-top:3px;
   }
   .vehicle-total-strike{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-weight:500;
     font-size:0.74rem;
     color:var(--muted);
@@ -479,7 +481,18 @@
   .chevron.closed{transform:rotate(-90deg);}
 
   .vehicle-pieces{
+    display:grid;
+    grid-template-rows:1fr;
+    transition:grid-template-rows 0.28s ease;
     border-top:1px solid var(--line);
+  }
+  .vehicle-group.collapsed .vehicle-pieces{
+    grid-template-rows:0fr;
+    border-top-color:transparent;
+  }
+  .pieces-inner{
+    overflow:hidden;
+    min-height:0;
   }
   .piece-row{
     display:flex;
@@ -520,7 +533,7 @@
     padding:0 8px;
     display:flex;
     align-items:center;
-    color:#111;
+    color:#131410;
     white-space:nowrap;
   }
 
@@ -553,7 +566,7 @@
     white-space:nowrap;
   }
   .precio-label{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:0.65rem;
     font-weight:600;
     color:var(--muted);
@@ -564,7 +577,7 @@
   .precio-row.final .precio-val{font-size:0.97rem; font-weight:700; color:var(--ink);}
   .precio-row.final.has-discount .precio-val{color:var(--success);}
   .descuento-pct{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:0.65rem;
     font-weight:700;
     color:var(--success-text);
@@ -595,7 +608,7 @@
     font-size:0.85rem;
     padding:4px 8px;
     border:1px solid var(--line);
-    border-radius:1000px;
+    border-radius:8px;
   }
   .btn-edit:hover{color:var(--accent); border-color:var(--accent);}
   .btn-devolver{
@@ -620,7 +633,7 @@
     font-size:1rem;
     padding:4px 8px;
     border:1px solid var(--line);
-    border-radius:1000px;
+    border-radius:8px;
   }
   .btn-del:hover{color:var(--alert); border-color:var(--alert);}
 
@@ -755,7 +768,7 @@
       display:block;
       justify-self:start;
       font-weight:600;
-      font-size:14px;
+      font-size:18px;
       color:var(--ink);
       overflow-wrap:anywhere;
     }
@@ -870,15 +883,15 @@
     margin-left:auto;
     align-self:center;
     background:none;
-    border:1px solid rgba(244,244,245,0.25);
-    color:rgba(244,244,245,0.75);
-    font-family:'DM Sans',sans-serif;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-family:'Barlow',sans-serif;
     font-size:0.78rem;
     padding:6px 12px;
     border-radius:1000px;
     cursor:pointer;
   }
-  .logout-btn:hover{border-color:var(--orange); color:#fff;}
+  .logout-btn:hover{border-color:var(--accent); color:var(--ink);}
   .login-gate{
     display:none;
     position:fixed;
@@ -951,7 +964,7 @@
   }
   .login-logo svg{width:32px; height:32px;}
   .login-wordmark{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-weight:700;
     font-size:2.35rem;
     line-height:1;
@@ -1007,7 +1020,7 @@
     margin-bottom:6px;
   }
   .login-heading{
-    font-family:'Outfit',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-weight:700;
     font-size:1.7rem;
     text-transform:uppercase;
@@ -1034,7 +1047,7 @@
     pointer-events:none;
   }
   .login-form-panel input{
-    font-family:'DM Sans',sans-serif;
+    font-family:'Barlow',sans-serif;
     font-size:16px;
     padding:11px 12px 11px 38px;
     border:1.5px solid var(--line);
@@ -1355,7 +1368,7 @@ const BACKUP_KEY = 'pedidos-last-backup';
 let pedidos = [];
 let inspecciones = [];
 let historialVisible = false;
-let collapsedGroups = new Set();
+let expandedGroups = new Set(); // cards start collapsed; a key here means expanded
 let lastBackupISO = null;
 
 const usingSupabase = () => SUPABASE_URL && SUPABASE_ANON_KEY;
@@ -1734,7 +1747,7 @@ function groupHTML(g, isHistory){
   const count = g.items.length;
   const piezaLabel = count === 1 ? '1 pieza' : `${count} piezas`;
   const groupKey = g.matricula + (isHistory ? '_h' : '_p');
-  const collapsed = collapsedGroups.has(groupKey);
+  const collapsed = !expandedGroups.has(groupKey);
 
   let urgencyCls = '';
   let badgeCls = '';
@@ -1755,34 +1768,42 @@ function groupHTML(g, isHistory){
 
   const marcaGrupo = g.items.map(p=>p.marca).find(m=>m) || '';
   const nameHTML = marcaGrupo ? `<span class="vehicle-name">${escapeHTML(marcaGrupo)}</span>` : '';
-  const countLine = marcaGrupo
-    ? `<span class="vehicle-marca">${escapeHTML(marcaGrupo)} · </span>${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`
-    : `${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`;
+  const marcaTitle = marcaGrupo ? `<span class="vehicle-marca">${escapeHTML(marcaGrupo)}</span>` : '';
+  const countLine = `${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`;
 
   return `
-    <div class="vehicle-group ${urgencyCls}">
+    <div class="vehicle-group ${urgencyCls} ${collapsed ? 'collapsed' : ''}" data-key="${groupKey}">
       <div class="vehicle-header" onclick="toggleGroup('${groupKey}')">
         ${plateHTML(g.matricula)}
         ${nameHTML}
         <div class="vehicle-summary">
+          ${marcaTitle}
           <span class="vehicle-count">${countLine}</span>
           ${totalHTML}
         </div>
         ${diasBadge}
         <span class="chevron ${collapsed ? 'closed' : ''}">⌄</span>
       </div>
-      <div class="vehicle-pieces" style="${collapsed ? 'display:none;' : ''}">
-        ${g.items.map(p=>pieceRowHTML(p,isHistory)).join('')}
+      <div class="vehicle-pieces">
+        <div class="pieces-inner">
+          ${g.items.map(p=>pieceRowHTML(p,isHistory)).join('')}
+        </div>
       </div>
     </div>
   `;
 }
 
 function toggleGroup(key){
-  if(collapsedGroups.has(key)) collapsedGroups.delete(key);
-  else collapsedGroups.add(key);
-  if(key.indexOf('insp_') === 0) renderInspecciones();
-  else render();
+  if(expandedGroups.has(key)) expandedGroups.delete(key);
+  else expandedGroups.add(key);
+  const collapsed = !expandedGroups.has(key);
+  // Toggle classes on the existing card so the open/close animation can play
+  const card = document.querySelector('.vehicle-group[data-key="' + key + '"]');
+  if(card){
+    card.classList.toggle('collapsed', collapsed);
+    const chev = card.querySelector('.chevron');
+    if(chev) chev.classList.toggle('closed', collapsed);
+  }
 }
 
 function buildGroups(list, isHistory){
@@ -2425,7 +2446,7 @@ function inspCardHTML(insp){
   const total = insp.piezas.length;
   const pedidas = insp.piezas.filter(p=>p.estado === 'pedido').length;
   const enPedido = insp.piezas.filter(p=>p.estado === 'en-pedido').length;
-  const collapsed = collapsedGroups.has('insp_' + insp.id);
+  const collapsed = !expandedGroups.has('insp_' + insp.id);
   const fechaMat = insp.fechaMatriculacion ? ` · matriculado ${formatFecha(insp.fechaMatriculacion)}` : '';
   const marca = insp.marca ? escapeHTML(insp.marca) : '';
 
@@ -2443,12 +2464,13 @@ function inspCardHTML(insp){
   const allDone = total > 0 && pedidas === total;
 
   return `
-    <div class="vehicle-group ${allDone ? 'done' : ''}">
+    <div class="vehicle-group ${allDone ? 'done' : ''} ${collapsed ? 'collapsed' : ''}" data-key="insp_${insp.id}">
       <div class="vehicle-header" onclick="toggleGroup('insp_${insp.id}')">
         ${plateHTML(insp.matricula)}
         ${marca ? `<span class="vehicle-name">${marca}</span>` : ''}
         <div class="vehicle-summary">
-          <span class="vehicle-count">${marca ? `<span class="vehicle-marca">${marca} · </span>` : ''}${resumen}</span>
+          ${marca ? `<span class="vehicle-marca">${marca}</span>` : ''}
+          <span class="vehicle-count">${resumen}</span>
           ${insp.bastidor ? `<span class="vehicle-fecha-mat">Bastidor ${escapeHTML(insp.bastidor)}</span>` : ''}
           ${insp.fechaMatriculacion ? `<span class="vehicle-fecha-mat">Matriculado ${formatFecha(insp.fechaMatriculacion)}</span>` : ''}
         </div>
@@ -2458,8 +2480,10 @@ function inspCardHTML(insp){
         </div>
         <span class="chevron ${collapsed ? 'closed' : ''}">⌄</span>
       </div>
-      <div class="vehicle-pieces" style="${collapsed ? 'display:none;' : ''}">
-        ${insp.piezas.map(pz=>inspPieceRowHTML(insp, pz)).join('') || '<div class="piece-row"><div class="piece-body"><div class="ticket-meta">Sin piezas anotadas.</div></div></div>'}
+      <div class="vehicle-pieces">
+        <div class="pieces-inner">
+          ${insp.piezas.map(pz=>inspPieceRowHTML(insp, pz)).join('') || '<div class="piece-row"><div class="piece-body"><div class="ticket-meta">Sin piezas anotadas.</div></div></div>'}
+        </div>
       </div>
     </div>
   `;
