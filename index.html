@@ -457,27 +457,36 @@
     font-weight:500;
   }
   .vehicle-name{display:none;}
+  .vehicle-price{
+    display:inline-flex;
+    align-items:baseline;
+    gap:7px;
+    flex-wrap:wrap;
+    margin-top:3px;
+  }
   .vehicle-total{
     font-family:'JetBrains Mono',monospace;
     font-weight:700;
-    font-size:1.05rem;
+    font-size:1.15rem;
     color:var(--accent-dark);
-    margin-top:3px;
   }
-  .vehicle-total-strike{
-    font-family:'Barlow',sans-serif;
+  .vehicle-total-was{
+    font-family:'JetBrains Mono',monospace;
     font-weight:500;
-    font-size:0.74rem;
+    font-size:0.82rem;
     color:var(--muted);
-    text-decoration:line-through;
-    margin-left:4px;
   }
   .chevron{
-    font-size:1.1rem;
+    width:26px;
+    height:26px;
     color:var(--muted);
-    transition:transform 0.15s ease;
+    transition:transform 0.2s ease;
     flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
   }
+  .chevron svg{width:100%; height:100%; display:block;}
   .chevron.closed{transform:rotate(-90deg);}
 
   .vehicle-pieces{
@@ -602,14 +611,20 @@
     padding:6px 12px;
     font-size:0.78rem;
   }
-  .btn-edit{
+  .btn-edit, .btn-del{
     background:transparent;
     color:var(--muted);
-    font-size:0.85rem;
-    padding:4px 8px;
+    padding:0;
+    width:32px;
+    height:32px;
     border:1px solid var(--line);
-    border-radius:8px;
+    border-radius:9px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:none;
   }
+  .btn-edit svg{width:16px; height:16px; display:block;}
   .btn-edit:hover{color:var(--accent); border-color:var(--accent);}
   .btn-devolver{
     background:var(--surface-2);
@@ -627,14 +642,7 @@
     font-size:0.75rem;
   }
   .btn-reclamar:hover{background:var(--orange-bg-strong);}
-  .btn-del{
-    background:transparent;
-    color:var(--muted);
-    font-size:1rem;
-    padding:4px 8px;
-    border:1px solid var(--line);
-    border-radius:8px;
-  }
+  .btn-del{font-size:1.2rem; line-height:1;}
   .btn-del:hover{color:var(--alert); border-color:var(--alert);}
 
   .empty{
@@ -776,14 +784,8 @@
     .vehicle-header > .badge-dias{grid-area:right; justify-self:end;}
     .vehicle-header > .chevron{
       grid-area:chevron;
-      border:none;
-      background:none;
-      width:auto;
-      height:auto;
-      font-size:1.7rem;
-      font-weight:700;
-      line-height:1;
-      padding:0 2px;
+      width:28px;
+      height:28px;
     }
     .vehicle-header > .vehicle-summary{
       grid-area:summary;
@@ -1819,6 +1821,9 @@ function showConfirm(message){
   });
 }
 
+const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+
 function plateHTML(matricula){
   return `<div class="plate"><div class="plate__eu">E</div><div class="plate__num">${matricula}</div></div>`;
 }
@@ -1874,14 +1879,14 @@ function pieceRowHTML(p, isHistory){
     ? `<span class="badge-dias">Recibido ${formatFecha(p.fechaRecibido)}</span>
        <div class="ticket-actions">
          <button class="btn-devolver" onclick="devolverPendiente('${p.id}')" title="Devolver a pendientes">Devolver</button>
-         <button class="btn-edit" onclick="startEdit('${p.id}')" title="Editar">✎</button>
+         <button class="btn-edit" onclick="startEdit('${p.id}')" title="Editar">${ICON_EDIT}</button>
          <button class="btn-del" onclick="deletePedido('${p.id}')" title="Eliminar">×</button>
        </div>`
     : `<span class="badge-dias ${badgeCls}">${diasLabel}</span>
        <div class="ticket-actions">
          ${dias >= 5 ? `<button class="btn-reclamar" onclick="reclamarPedido('${p.id}')" title="Reclamar al proveedor">Reclamar</button>` : ''}
          <button class="btn-recibido" onclick="markRecibido('${p.id}')">Recibido</button>
-         <button class="btn-edit" onclick="startEdit('${p.id}')" title="Editar">✎</button>
+         <button class="btn-edit" onclick="startEdit('${p.id}')" title="Editar">${ICON_EDIT}</button>
          <button class="btn-del" onclick="deletePedido('${p.id}')" title="Eliminar">×</button>
        </div>`;
   return `
@@ -1918,9 +1923,10 @@ function groupHTML(g, isHistory){
     urgencyCls = 'done';
   }
 
+  const pctCard = totalLista > 0 ? Math.round((totalLista - totalDesc) / totalLista * 100) : 0;
   const totalHTML = hasDiscount
-    ? `<span class="vehicle-total">${formatEuro(totalDesc)} <span class="vehicle-total-strike">${formatEuro(totalLista)}</span></span>`
-    : `<span class="vehicle-total">${formatEuro(totalLista)}</span>`;
+    ? `<span class="vehicle-price"><span class="vehicle-total">${formatEuro(totalDesc)}</span><span class="vehicle-total-was">${formatEuro(totalLista)}</span>${pctCard > 0 ? `<span class="descuento-pct">-${pctCard}%</span>` : ''}</span>`
+    : `<span class="vehicle-price"><span class="vehicle-total">${formatEuro(totalLista)}</span></span>`;
 
   const marcaGrupo = g.items.map(p=>p.marca).find(m=>m) || '';
   const nameHTML = marcaGrupo ? `<span class="vehicle-name">${escapeHTML(marcaGrupo)}</span>` : '';
@@ -1938,7 +1944,7 @@ function groupHTML(g, isHistory){
           ${totalHTML}
         </div>
         ${diasBadge}
-        <span class="chevron ${collapsed ? 'closed' : ''}">⌄</span>
+        <span class="chevron ${collapsed ? 'closed' : ''}">${ICON_CHEVRON}</span>
       </div>
       <div class="vehicle-pieces">
         <div class="pieces-inner">
@@ -2631,10 +2637,10 @@ function inspCardHTML(insp){
           ${insp.fechaMatriculacion ? `<span class="vehicle-fecha-mat">Matriculado ${formatFecha(insp.fechaMatriculacion)}</span>` : ''}
         </div>
         <div class="ticket-actions" onclick="event.stopPropagation()">
-          <button class="btn-edit" onclick="startEditInsp('${insp.id}')" title="Editar">✎</button>
+          <button class="btn-edit" onclick="startEditInsp('${insp.id}')" title="Editar">${ICON_EDIT}</button>
           <button class="btn-del" onclick="deleteInsp('${insp.id}')" title="Eliminar inspección">×</button>
         </div>
-        <span class="chevron ${collapsed ? 'closed' : ''}">⌄</span>
+        <span class="chevron ${collapsed ? 'closed' : ''}">${ICON_CHEVRON}</span>
       </div>
       <div class="vehicle-pieces">
         <div class="pieces-inner">
