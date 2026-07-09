@@ -853,6 +853,44 @@
     padding:9px 16px;
   }
 
+  /* Copias de seguridad */
+  .backups-box{max-width:480px;}
+  .backups-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .backups-head h3{
+    font-family:'Barlow',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:1.05rem;
+    margin:0;
+  }
+  .backups-note{color:var(--muted); font-size:0.82rem; margin:0 0 14px;}
+  .backups-list{
+    max-height:52vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .backup-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:12px;
+  }
+  .backup-date{font-weight:600; font-size:0.9rem;}
+  .backup-meta{font-size:0.76rem; color:var(--muted); margin-top:2px;}
+  .backup-item .btn-secondary{padding:6px 12px; font-size:0.82rem; flex:none;}
+
   /* Toast (replaces native alert()) */
   .toast{
     position:fixed;
@@ -1253,8 +1291,9 @@
     <button class="csv-btn" id="pdf-btn">Descargar PDF</button>
   </div>
   <div class="import-row">
+    <span class="toggle-link backups-open">Copias de seguridad y restaurar</span>
     <input type="file" id="import-file" accept=".csv" hidden>
-    <span class="toggle-link" id="import-btn">Importar pedidos desde un CSV (recuperar copia)</span>
+    <span class="toggle-link" id="import-btn">Importar pedidos desde un CSV</span>
   </div>
 
   <div class="section-head">
@@ -1325,8 +1364,9 @@
       <button class="csv-btn" id="insp-export-btn">Exportar CSV</button>
     </div>
     <div class="import-row">
+      <span class="toggle-link backups-open">Copias de seguridad y restaurar</span>
       <input type="file" id="insp-import-file" accept=".csv" hidden>
-      <span class="toggle-link" id="insp-import-btn">Importar inspecciones desde un CSV (recuperar copia)</span>
+      <span class="toggle-link" id="insp-import-btn">Importar inspecciones desde un CSV</span>
     </div>
 
     <div class="section-head">
@@ -1344,6 +1384,19 @@
     <div class="modal-actions">
       <button id="confirm-cancel" class="btn-secondary">Cancelar</button>
       <button id="confirm-ok" class="btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+<div id="backups-modal" class="modal-overlay">
+  <div class="modal-box backups-box">
+    <div class="backups-head">
+      <h3>Copias de seguridad</h3>
+      <button class="btn-secondary" id="backups-create-btn">Crear copia ahora</button>
+    </div>
+    <p class="backups-note">Se guarda una copia automática cada día. Puedes restaurar cualquiera; antes de restaurar se guarda otra del estado actual.</p>
+    <div id="backups-list" class="backups-list"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="backups-close-btn">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1458,64 +1511,126 @@ async function sbFetch(url, options = {}){
   return res;
 }
 
-async function sbGet(){
-  const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,inspecciones,last_backup`;
-  const res = await sbFetch(url);
-  if(!res.ok) throw new Error('Supabase GET ' + res.status);
-  const rows = await res.json();
-  return rows[0] || null;
+// Tablas: cada pedido y cada inspección es una fila propia (así dos
+// dispositivos a la vez no se pisan y no se pierde nada).
+const T_PED = 'pedido_items';
+const T_INS = 'inspeccion_items';
+const T_BAK = 'backups';
+
+// Mapeo entre el objeto de la app (camelCase) y la fila de la BD (snake_case)
+function pedidoToRow(p){
+  return {
+    id: p.id, matricula: p.matricula, marca: p.marca || null,
+    pieza: p.pieza, proveedor: p.proveedor,
+    precio: (p.precio != null && !isNaN(p.precio)) ? p.precio : null,
+    descuento: (p.descuento != null && !isNaN(p.descuento)) ? p.descuento : 0,
+    fecha_pedido: p.fechaPedido || null, estado: p.estado || 'pedido',
+    fecha_recibido: p.fechaRecibido || null, updated_at: new Date().toISOString()
+  };
+}
+function rowToPedido(r){
+  const p = {
+    id: r.id, matricula: r.matricula || '', marca: r.marca || '',
+    pieza: r.pieza || '', proveedor: r.proveedor || '',
+    precio: r.precio != null ? Number(r.precio) : 0,
+    descuento: r.descuento != null ? Number(r.descuento) : 0,
+    fechaPedido: r.fecha_pedido || '', estado: r.estado || 'pedido'
+  };
+  if(r.fecha_recibido) p.fechaRecibido = r.fecha_recibido;
+  return p;
+}
+function inspToRow(insp){
+  return {
+    id: insp.id, matricula: insp.matricula, marca: insp.marca || null,
+    bastidor: insp.bastidor || null, fecha_matriculacion: insp.fechaMatriculacion || null,
+    creada: insp.creada || null, piezas: insp.piezas || [], updated_at: new Date().toISOString()
+  };
+}
+function rowToInsp(r){
+  let piezas = [];
+  try{ piezas = Array.isArray(r.piezas) ? r.piezas : (r.piezas ? JSON.parse(r.piezas) : []); }catch(e){ piezas = []; }
+  return {
+    id: r.id, matricula: r.matricula || '', marca: r.marca || '',
+    bastidor: r.bastidor || '', fechaMatriculacion: r.fecha_matriculacion || '',
+    creada: r.creada || '', piezas
+  };
 }
 
-async function sbUpsert(fields){
-  const body = Object.assign({ id: SUPABASE_ROW_ID }, fields);
-  const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`;
-  const res = await sbFetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-    body: JSON.stringify(body)
+// Operaciones por fila
+async function sbUpsertRow(table, rowObj){
+  const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=id`, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates' },
+    body: JSON.stringify(rowObj)
   });
-  if(!res.ok) throw new Error('Supabase UPSERT ' + res.status);
+  if(!res.ok) throw new Error(table + ' upsert ' + res.status);
+}
+async function sbDeleteRow(table, id){
+  const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' });
+  if(!res.ok) throw new Error(table + ' delete ' + res.status);
+}
+async function sbInsertMany(table, rowObjs){
+  if(!rowObjs.length) return;
+  const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=id`, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates' },
+    body: JSON.stringify(rowObjs)
+  });
+  if(!res.ok) throw new Error(table + ' insert-many ' + res.status);
 }
 
 // --- Load / save pedidos ---------------------------------------------------
 async function loadPedidos(){
   if(usingSupabase()){
     try{
-      const row = await sbGet();
-      if(row && row.data) return typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
-      return [];
+      const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${T_PED}?select=*`);
+      if(!res.ok) throw new Error('load pedidos ' + res.status);
+      return (await res.json()).map(rowToPedido);
     }catch(e){
       showToast('No se pudo conectar con la base de datos. Revisa tu conexión.', true);
       return [];
     }
   }
-  // Fallback: this browser only
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){ return []; }
 }
 
-async function savePedidos(){
+// Guardar UN pedido (añadir o editar). No toca los demás pedidos.
+async function savePedido(p){
   if(usingSupabase()){
-    try{
-      await sbUpsert({ data: pedidos });
-    }catch(e){
-      showToast('No se pudieron guardar los cambios en la base de datos.', true);
-    }
+    try{ await sbUpsertRow(T_PED, pedidoToRow(p)); }
+    catch(e){ showToast('No se pudieron guardar los cambios en la base de datos.', true); }
     return;
   }
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos));
-  }catch(e){}
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos)); }catch(e){}
+}
+// Borrar UN pedido.
+async function removePedido(id){
+  if(usingSupabase()){
+    try{ await sbDeleteRow(T_PED, id); }
+    catch(e){ showToast('No se pudo eliminar en la base de datos.', true); }
+    return;
+  }
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos)); }catch(e){}
+}
+// Guardar varios pedidos de golpe (importación).
+async function savePedidosMany(list){
+  if(usingSupabase()){
+    try{ await sbInsertMany(T_PED, list.map(pedidoToRow)); }
+    catch(e){ showToast('No se pudieron guardar todos los pedidos.', true); }
+    return;
+  }
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos)); }catch(e){}
 }
 
 async function loadInspecciones(){
   if(usingSupabase()){
     try{
-      const row = await sbGet();
-      if(row && row.inspecciones) return typeof row.inspecciones === 'string' ? JSON.parse(row.inspecciones) : row.inspecciones;
-      return [];
+      const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${T_INS}?select=*`);
+      if(!res.ok) throw new Error('load inspecciones ' + res.status);
+      return (await res.json()).map(rowToInsp);
     }catch(e){
       return [];
     }
@@ -1526,61 +1641,102 @@ async function loadInspecciones(){
   }catch(e){ return []; }
 }
 
-async function saveInspecciones(){
+// Guardar UNA inspección (añadir o editar). No toca las demás.
+async function saveInspeccion(insp){
   if(usingSupabase()){
-    try{
-      await sbUpsert({ inspecciones: inspecciones });
-    }catch(e){
-      showToast('No se pudieron guardar los cambios en la base de datos.', true);
-    }
+    try{ await sbUpsertRow(T_INS, inspToRow(insp)); }
+    catch(e){ showToast('No se pudieron guardar los cambios en la base de datos.', true); }
     return;
   }
+  try{ localStorage.setItem('inspecciones-data', JSON.stringify(inspecciones)); }catch(e){}
+}
+// Borrar UNA inspección.
+async function removeInspeccion(id){
+  if(usingSupabase()){
+    try{ await sbDeleteRow(T_INS, id); }
+    catch(e){ showToast('No se pudo eliminar en la base de datos.', true); }
+    return;
+  }
+  try{ localStorage.setItem('inspecciones-data', JSON.stringify(inspecciones)); }catch(e){}
+}
+// Guardar varias inspecciones de golpe (importación).
+async function saveInspeccionesMany(list){
+  if(usingSupabase()){
+    try{ await sbInsertMany(T_INS, list.map(inspToRow)); }
+    catch(e){ showToast('No se pudieron guardar todas las inspecciones.', true); }
+    return;
+  }
+  try{ localStorage.setItem('inspecciones-data', JSON.stringify(inspecciones)); }catch(e){}
+}
+
+// --- Copias de seguridad (instantáneas con fecha) --------------------------
+async function createBackup(etiqueta){
+  if(!usingSupabase()) return;
   try{
-    localStorage.setItem('inspecciones-data', JSON.stringify(inspecciones));
+    await sbFetch(`${SUPABASE_URL}/rest/v1/${T_BAK}`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ etiqueta: etiqueta || 'manual', pedidos, inspecciones })
+    });
+    lastBackupISO = todayISO();
+    pruneBackups();
   }catch(e){}
 }
-
-async function loadLastBackup(){
-  if(usingSupabase()){
-    try{
-      const row = await sbGet();
-      return (row && row.last_backup) ? row.last_backup : null;
-    }catch(e){ return null; }
-  }
+// Mantener solo las 30 copias más recientes.
+async function pruneBackups(){
   try{
-    return localStorage.getItem(BACKUP_KEY) || null;
-  }catch(e){ return null; }
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${T_BAK}?select=id&order=created_at.desc&offset=30`);
+    if(!res.ok) return;
+    const viejas = await res.json();
+    for(const b of viejas){ await sbFetch(`${SUPABASE_URL}/rest/v1/${T_BAK}?id=eq.${b.id}`, { method:'DELETE' }); }
+  }catch(e){}
+}
+async function loadBackups(){
+  if(!usingSupabase()) return [];
+  try{
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${T_BAK}?select=*&order=created_at.desc`);
+    if(!res.ok) return [];
+    return await res.json();
+  }catch(e){ return []; }
+}
+// Una copia automática al día (la primera vez que se abre la app ese día).
+async function autoBackup(){
+  if(!usingSupabase()) return;
+  try{
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${T_BAK}?select=created_at&order=created_at.desc&limit=1`);
+    if(res.ok){
+      const rows = await res.json();
+      lastBackupISO = rows[0] ? rows[0].created_at.slice(0,10) : null;
+      if(lastBackupISO === todayISO()) return; // ya hay copia de hoy
+    }
+  }catch(e){ return; }
+  if(pedidos.length || inspecciones.length){ await createBackup('automática'); }
+}
+async function restoreBackup(id){
+  if(!usingSupabase()) return;
+  await createBackup('antes de restaurar'); // red de seguridad del estado actual
+  const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${T_BAK}?id=eq.${id}&select=pedidos,inspecciones`);
+  if(!res.ok){ showToast('No se pudo leer la copia.', true); return; }
+  const snap = (await res.json())[0];
+  if(!snap){ showToast('Copia no encontrada.', true); return; }
+  const snapPed = Array.isArray(snap.pedidos) ? snap.pedidos : [];
+  const snapIns = Array.isArray(snap.inspecciones) ? snap.inspecciones : [];
+  try{
+    await sbFetch(`${SUPABASE_URL}/rest/v1/${T_PED}?id=not.is.null`, { method:'DELETE' });
+    await sbFetch(`${SUPABASE_URL}/rest/v1/${T_INS}?id=not.is.null`, { method:'DELETE' });
+    await sbInsertMany(T_PED, snapPed.map(pedidoToRow));
+    await sbInsertMany(T_INS, snapIns.map(inspToRow));
+  }catch(e){ showToast('Hubo un problema al restaurar. Revisa la conexión.', true); }
+  pedidos = await loadPedidos();
+  inspecciones = await loadInspecciones();
+  render();
+  renderInspecciones();
 }
 
-async function saveLastBackup(){
-  lastBackupISO = todayISO();
-  if(usingSupabase()){
-    try{ await sbUpsert({ last_backup: lastBackupISO }); }catch(e){}
-  } else {
-    try{ localStorage.setItem(BACKUP_KEY, lastBackupISO); }catch(e){}
-  }
-  renderBackupBanner();
-}
-
+// Con copias automáticas ya no hace falta el aviso; se deja oculto.
 function renderBackupBanner(){
   const banner = document.getElementById('backup-banner');
-  const msgEl = document.getElementById('backup-msg');
-  if(pedidos.length === 0){
-    banner.style.display = 'none';
-    return;
-  }
-  if(!lastBackupISO){
-    msgEl.textContent = 'Aún no has hecho ninguna copia de seguridad de los pedidos.';
-    banner.style.display = 'flex';
-    return;
-  }
-  const dias = diasDesde(lastBackupISO);
-  if(dias >= 7){
-    msgEl.textContent = `Última copia de seguridad hace ${dias} días.`;
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
+  if(banner) banner.style.display = 'none';
 }
 
 function todayISO(){
@@ -1896,7 +2052,7 @@ async function markRecibido(id){
   if(!p) return;
   p.estado = 'recibido';
   p.fechaRecibido = todayISO();
-  await savePedidos();
+  await savePedido(p);
   render();
 }
 
@@ -1905,7 +2061,7 @@ async function devolverPendiente(id){
   if(!p) return;
   p.estado = 'pedido';
   delete p.fechaRecibido;
-  await savePedidos();
+  await savePedido(p);
   render();
   showToast('Pedido devuelto a pendientes.');
 }
@@ -1976,7 +2132,7 @@ async function deletePedido(id){
   if(!ok) return;
   pedidos = pedidos.filter(x=>x.id!==id);
   if(editingId === id) cancelEdit();
-  await savePedidos();
+  await removePedido(id);
   render();
   showToast('Pedido eliminado.');
 }
@@ -2100,7 +2256,7 @@ async function handleAddSubmit(){
       p.precio = precio;
       p.descuento = descuento;
       p.fechaPedido = fechaPedido;
-      await savePedidos();
+      await savePedido(p);
       render();
       showToast('Cambios guardados.');
     }
@@ -2114,7 +2270,7 @@ async function handleAddSubmit(){
     estado: 'pedido'
   };
   pedidos.push(nuevo);
-  await savePedidos();
+  await savePedido(nuevo);
   render();
 
   document.getElementById('add-form').reset();
@@ -2179,7 +2335,7 @@ document.getElementById('export-btn').addEventListener('click', async ()=>{
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   try{
     const result = await saveOrShareFile(blob, 'pedidos_piezas.csv', 'text/csv', 'Pedidos de piezas');
-    if(result !== 'cancelled'){ showToast('CSV listo.'); await saveLastBackup(); }
+    if(result !== 'cancelled'){ showToast('CSV listo.'); }
   }catch(err){
     showToast('No se pudo generar el CSV.', true);
   }
@@ -2376,7 +2532,7 @@ document.getElementById('import-file').addEventListener('change', async (e)=>{
     const ok = await showConfirm(`Se han encontrado ${nuevos.length} pedidos en el archivo. Se añadirán a los que ya tienes ahora mismo (no se borra nada existente). ¿Continuar?`);
     if(!ok){ e.target.value = ''; return; }
     pedidos = pedidos.concat(nuevos);
-    await savePedidos();
+    await savePedidosMany(nuevos);
     render();
     showToast(`Importados ${nuevos.length} pedidos correctamente.`);
   }catch(err){
@@ -2593,7 +2749,7 @@ async function handleInspSubmit(){
           insp.piezas.push({ id:'iz_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), nombre:pd.nombre, referencia:pd.referencia||'', estado:'pendiente' });
         }
       });
-      await saveInspecciones();
+      await saveInspeccion(insp);
       renderInspecciones();
       showToast('Inspección actualizada.');
     }
@@ -2608,7 +2764,7 @@ async function handleInspSubmit(){
     creada: new Date().toISOString()
   };
   inspecciones.push(nueva);
-  await saveInspecciones();
+  await saveInspeccion(nueva);
   renderInspecciones();
 
   document.getElementById('insp-form').reset();
@@ -2652,7 +2808,7 @@ async function deleteInsp(id){
   if(!ok) return;
   inspecciones = inspecciones.filter(x=>x.id!==id);
   if(editingInspId === id) cancelEditInsp();
-  await saveInspecciones();
+  await removeInspeccion(id);
   renderInspecciones();
   showToast('Inspección eliminada.');
 }
@@ -2663,7 +2819,7 @@ async function deletePieza(inspId, piezaId){
   const ok = await showConfirm('¿Eliminar esta pieza de la inspección?');
   if(!ok) return;
   insp.piezas = insp.piezas.filter(p=>p.id!==piezaId);
-  await saveInspecciones();
+  await saveInspeccion(insp);
   renderInspecciones();
   showToast('Pieza eliminada.');
 }
@@ -2677,7 +2833,7 @@ async function pedirPieza(inspId, piezaId){
 
   // mark as en-pedido and remember the link
   pz.estado = 'en-pedido';
-  await saveInspecciones();
+  await saveInspeccion(insp);
 
   // switch to Pedidos and prefill the form (do NOT auto-create; user adds supplier+price)
   switchView('pedidos');
@@ -2700,7 +2856,7 @@ async function confirmarPieza(inspId, piezaId){
   const pz = insp.piezas.find(p=>p.id===piezaId);
   if(!pz) return;
   pz.estado = 'pedido';
-  await saveInspecciones();
+  await saveInspeccion(insp);
   renderInspecciones();
   showToast('Pieza marcada como pedida.');
 }
@@ -2742,6 +2898,45 @@ document.getElementById('insp-export-btn').addEventListener('click', async ()=>{
   }catch(err){
     showToast('No se pudo generar el CSV.', true);
   }
+});
+
+// --- Interfaz de copias de seguridad --------------------------------------
+async function openBackupsModal(){
+  const modal = document.getElementById('backups-modal');
+  const list = document.getElementById('backups-list');
+  list.innerHTML = '<div class="loading">Cargando copias…</div>';
+  modal.classList.add('show');
+  const backups = await loadBackups();
+  if(!backups.length){ list.innerHTML = '<div class="empty">Aún no hay copias de seguridad.</div>'; return; }
+  list.innerHTML = backups.map(b=>{
+    const np = Array.isArray(b.pedidos) ? b.pedidos.length : 0;
+    const ni = Array.isArray(b.inspecciones) ? b.inspecciones.length : 0;
+    const fecha = new Date(b.created_at).toLocaleString('es-ES', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+    return `<div class="backup-item">
+      <div class="backup-info">
+        <div class="backup-date">${fecha}</div>
+        <div class="backup-meta">${np} pedidos · ${ni} inspecciones${b.etiqueta ? ' · ' + escapeHTML(b.etiqueta) : ''}</div>
+      </div>
+      <button class="btn-secondary" onclick="handleRestore(${b.id})">Restaurar</button>
+    </div>`;
+  }).join('');
+}
+
+async function handleRestore(id){
+  const ok = await showConfirm('¿Restaurar esta copia? Se reemplazan los pedidos e inspecciones actuales por los de la copia. (Antes se guarda una copia del estado actual, por si acaso.)');
+  if(!ok) return;
+  document.getElementById('backups-modal').classList.remove('show');
+  showToast('Restaurando copia…');
+  await restoreBackup(id);
+  showToast('Copia restaurada.');
+}
+
+document.querySelectorAll('.backups-open').forEach(el=> el.addEventListener('click', openBackupsModal));
+document.getElementById('backups-close-btn').addEventListener('click', ()=> document.getElementById('backups-modal').classList.remove('show'));
+document.getElementById('backups-create-btn').addEventListener('click', async ()=>{
+  await createBackup('manual');
+  showToast('Copia de seguridad creada.');
+  openBackupsModal();
 });
 
 function inspeccionesDesdeCSV(text){
@@ -2806,7 +3001,7 @@ document.getElementById('insp-import-file').addEventListener('change', async (e)
     const ok = await showConfirm(`Se han encontrado ${nuevas.length} inspecciones en el archivo. Se añadirán a las que ya tienes ahora mismo (no se borra nada existente). ¿Continuar?`);
     if(!ok){ e.target.value = ''; return; }
     inspecciones = inspecciones.concat(nuevas);
-    await saveInspecciones();
+    await saveInspeccionesMany(nuevas);
     renderInspecciones();
     showToast(`Importadas ${nuevas.length} inspecciones correctamente.`);
   }catch(err){
@@ -2834,9 +3029,20 @@ async function startApp(){
   }
   pedidos = await loadPedidos();
   inspecciones = await loadInspecciones();
-  lastBackupISO = await loadLastBackup();
   render();
+  renderInspecciones();
+  autoBackup(); // copia automática diaria (no bloquea la interfaz)
 }
+
+// Al volver a la pestaña, recargar por si otro dispositivo cambió algo.
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState === 'visible' && appStarted && usingSupabase() && hasValidSession() && !editingId && !editingInspId){
+    pedidos = await loadPedidos();
+    inspecciones = await loadInspecciones();
+    render();
+    renderInspecciones();
+  }
+});
 
 document.getElementById('login-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
