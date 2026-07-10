@@ -735,6 +735,21 @@
     padding:6px 12px;
     font-size:0.75rem;
   }
+  .btn-deshacer{
+    background:transparent;
+    color:var(--muted);
+    padding:0;
+    width:32px;
+    height:32px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:none;
+  }
+  .btn-deshacer svg{width:16px; height:16px; display:block;}
+  .btn-deshacer:hover{color:var(--accent); border-color:var(--accent);}
   .vehicle-fecha-mat{
     font-size:0.78rem;
     color:var(--muted);
@@ -1823,6 +1838,7 @@ function showConfirm(message){
 
 const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
 const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+const ICON_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H10"/></svg>';
 
 function plateHTML(matricula){
   return `<div class="plate"><div class="plate__eu">E</div><div class="plate__num">${matricula}</div></div>`;
@@ -2583,7 +2599,8 @@ function inspPieceRowHTML(insp, pz){
     actionBtn = `<button class="btn-pedir" onclick="pedirPieza('${insp.id}','${pz.id}')">Pedir</button>`;
   } else if(estado === 'en-pedido'){
     stateBadge = `<span class="insp-state en-pedido">En pedido</span>`;
-    actionBtn = `<button class="btn-confirmar" onclick="confirmarPieza('${insp.id}','${pz.id}')" title="Marcar como pedido confirmado">Confirmar</button>`;
+    actionBtn = `<button class="btn-deshacer" onclick="deshacerPedir('${insp.id}','${pz.id}')" title="Deshacer: volver a pendiente">${ICON_UNDO}</button>`
+      + `<button class="btn-confirmar" onclick="confirmarPieza('${insp.id}','${pz.id}')" title="Marcar como pedido confirmado">Confirmar</button>`;
   } else if(estado === 'pedido'){
     stateBadge = `<span class="insp-state pedido">Pedido ✓</span>`;
   }
@@ -2865,6 +2882,18 @@ async function confirmarPieza(inspId, piezaId){
   await saveInspeccion(insp);
   renderInspecciones();
   showToast('Pieza marcada como pedida.');
+}
+
+// Deshacer: la pieza vuelve a "pendiente" (por si se pulsó "Pedir" por error).
+async function deshacerPedir(inspId, piezaId){
+  const insp = inspecciones.find(x=>x.id===inspId);
+  if(!insp) return;
+  const pz = insp.piezas.find(p=>p.id===piezaId);
+  if(!pz) return;
+  pz.estado = 'pendiente';
+  await saveInspeccion(insp);
+  renderInspecciones();
+  showToast('Pieza devuelta a pendiente.');
 }
 
 // wire up inspection form
