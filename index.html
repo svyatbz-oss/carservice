@@ -416,6 +416,30 @@
     font-weight:600;
   }
 
+  /* Recibidos agrupados por mes */
+  .month-group{margin-bottom:18px;}
+  .month-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    font-family:'Barlow',sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--ink);
+    margin:0 2px 10px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--line);
+  }
+  .month-count{
+    font-weight:500;
+    font-size:0.78rem;
+    text-transform:none;
+    letter-spacing:0;
+    color:var(--muted);
+  }
+
   /* Vehicle group (cards grouped by matrícula) */
   .vehicle-group{
     background:var(--surface);
@@ -429,6 +453,11 @@
   .vehicle-group.warn{border-left-color:var(--orange-soft);}
   .vehicle-group.overdue{border-left-color:var(--orange); background:var(--orange-bg-strong);}
   .vehicle-group.done{border-left-color:var(--orange-soft);}
+  /* Estado seleccionado: la tarjeta abierta lleva borde negro */
+  .vehicle-group:not(.collapsed){
+    border-color:var(--accent-dark);
+    box-shadow:inset 0 0 0 1px var(--accent-dark);
+  }
 
   .vehicle-header{
     display:flex;
@@ -457,23 +486,28 @@
     font-weight:500;
   }
   .vehicle-name{display:none;}
+  .vehicle-aside{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    flex-shrink:0;
+  }
   .vehicle-price{
-    display:inline-flex;
-    align-items:baseline;
-    gap:7px;
-    flex-wrap:wrap;
-    margin-top:3px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    line-height:1.15;
   }
   .vehicle-total{
     font-family:'JetBrains Mono',monospace;
     font-weight:700;
-    font-size:1.15rem;
+    font-size:1.25rem;
     color:var(--accent-dark);
   }
   .vehicle-total-was{
     font-family:'JetBrains Mono',monospace;
     font-weight:500;
-    font-size:0.82rem;
+    font-size:0.9rem;
     color:var(--muted);
   }
   .chevron{
@@ -796,7 +830,7 @@
       overflow-wrap:anywhere;
     }
     .vehicle-header > .ticket-actions{grid-area:right; margin:0;}
-    .vehicle-header > .badge-dias{grid-area:right; justify-self:end;}
+    .vehicle-header > .vehicle-aside{grid-area:right; justify-self:end; align-items:flex-end;}
     .vehicle-header > .chevron{
       grid-area:chevron;
       width:28px;
@@ -811,6 +845,13 @@
     /* On mobile the car name sits by the plate, so drop the inline copy */
     .vehicle-summary .vehicle-marca{display:none;}
 
+    /* Keep the header price compact on mobile: hide only the discount chip
+       (the price stack itself is narrow); the -X% shows in the expanded rows. */
+    .vehicle-aside .descuento-pct{display:none;}
+    .vehicle-aside{gap:6px;}
+    .vehicle-total{font-size:1.1rem;}
+    .vehicle-total-was{font-size:0.82rem;}
+
     /* Pedidos piece rows: give the part name the full row width */
     #pending-list .piece-row .piece-body,
     #history-list .piece-row .piece-body{flex:1 1 100%;}
@@ -820,16 +861,6 @@
       align-items:flex-start;
       gap:3px;
     }
-    /* Pedidos cards: count on the left, total on the right */
-    #pending-list .vehicle-summary,
-    #history-list .vehicle-summary{
-      flex-direction:row;
-      justify-content:space-between;
-      align-items:baseline;
-      gap:10px;
-    }
-    #pending-list .vehicle-total,
-    #history-list .vehicle-total{flex-shrink:0;}
   }
 
   /* Custom confirm modal (replaces native confirm(), which can be blocked in embedded views) */
@@ -1923,7 +1954,7 @@ function groupHTML(g, isHistory){
   const hasDiscount = totalDesc < totalLista - 0.004;
   const count = g.items.length;
   const piezaLabel = count === 1 ? '1 pieza' : `${count} piezas`;
-  const groupKey = g.matricula + (isHistory ? '_h' : '_p');
+  const groupKey = g.matricula + (isHistory ? '_h' : '_p') + (g.monthKey ? '_' + g.monthKey : '');
   const collapsed = !expandedGroups.has(groupKey);
 
   let urgencyCls = '';
@@ -1940,14 +1971,17 @@ function groupHTML(g, isHistory){
   }
 
   const pctCard = totalLista > 0 ? Math.round((totalLista - totalDesc) / totalLista * 100) : 0;
-  const totalHTML = hasDiscount
-    ? `<span class="vehicle-price"><span class="vehicle-total">${formatEuro(totalDesc)}</span><span class="vehicle-total-was">${formatEuro(totalLista)}</span>${pctCard > 0 ? `<span class="descuento-pct">-${pctCard}%</span>` : ''}</span>`
-    : `<span class="vehicle-price"><span class="vehicle-total">${formatEuro(totalLista)}</span></span>`;
+  const priceStack = hasDiscount
+    ? `<div class="vehicle-price"><span class="vehicle-total">${formatEuro(totalDesc)}</span><span class="vehicle-total-was">${formatEuro(totalLista)}</span></div>`
+    : `<div class="vehicle-price"><span class="vehicle-total">${formatEuro(totalLista)}</span></div>`;
+  const discountChip = (hasDiscount && pctCard > 0) ? `<span class="descuento-pct">-${pctCard}%</span>` : '';
+  const totalHTML = priceStack + discountChip;
 
   const marcaGrupo = g.items.map(p=>p.marca).find(m=>m) || '';
   const nameHTML = marcaGrupo ? `<span class="vehicle-name">${escapeHTML(marcaGrupo)}</span>` : '';
   const marcaTitle = marcaGrupo ? `<span class="vehicle-marca">${escapeHTML(marcaGrupo)}</span>` : '';
-  const countLine = `${piezaLabel} ${isHistory ? 'recibidas' : 'pendientes'}`;
+  const estadoWord = isHistory ? (count === 1 ? 'recibida' : 'recibidas') : (count === 1 ? 'pendiente' : 'pendientes');
+  const countLine = `${piezaLabel} ${estadoWord}`;
 
   return `
     <div class="vehicle-group ${urgencyCls} ${collapsed ? 'collapsed' : ''}" data-key="${groupKey}">
@@ -1957,9 +1991,11 @@ function groupHTML(g, isHistory){
         <div class="vehicle-summary">
           ${marcaTitle}
           <span class="vehicle-count">${countLine}</span>
-          ${totalHTML}
         </div>
-        ${diasBadge}
+        <div class="vehicle-aside">
+          ${totalHTML}
+          ${diasBadge}
+        </div>
         <span class="chevron ${collapsed ? 'closed' : ''}">${ICON_CHEVRON}</span>
       </div>
       <div class="vehicle-pieces">
@@ -2011,7 +2047,7 @@ function render(){
   const pendientesList = pedidos.filter(p=>p.estado==='pedido' && matchesQ(p,q));
   const recibidosList = pedidos.filter(p=>p.estado==='recibido' && matchesQ(p,q))
     .sort((a,b)=> (b.fechaRecibido||'').localeCompare(a.fechaRecibido||''))
-    .slice(0,30);
+    .slice(0,300);
 
   renderSummary(pedidos.filter(p=>p.estado==='pedido'));
 
@@ -2021,14 +2057,43 @@ function render(){
     ? pendGroups.map(g=>groupHTML(g,false)).join('')
     : `<div class="empty">No hay pedidos pendientes. Añade el primero arriba.</div>`;
 
-  const histGroups = buildGroups(recibidosList, true);
-  const histEl = document.getElementById('history-list');
-  histEl.innerHTML = histGroups.length
-    ? histGroups.map(g=>groupHTML(g,true)).join('')
-    : `<div class="empty">Aún no hay piezas recibidas.</div>`;
+  renderRecibidos(recibidosList);
 
   updateProveedoresList();
   renderBackupBanner();
+}
+
+// Recibidos agrupados por mes (según la fecha de recibido).
+function renderRecibidos(list){
+  const el = document.getElementById('history-list');
+  if(!list.length){
+    el.innerHTML = `<div class="empty">Aún no hay piezas recibidas.</div>`;
+    return;
+  }
+  const byMonth = new Map();
+  list.forEach(p=>{
+    const ym = (p.fechaRecibido || '').slice(0,7) || 'sin-fecha';
+    if(!byMonth.has(ym)) byMonth.set(ym, []);
+    byMonth.get(ym).push(p);
+  });
+  const months = Array.from(byMonth.keys()).sort((a,b)=> b.localeCompare(a));
+  el.innerHTML = months.map(ym=>{
+    const items = byMonth.get(ym);
+    const groups = buildGroups(items, true);
+    groups.forEach(g=> g.monthKey = ym);
+    const n = items.length;
+    return `<div class="month-group">
+      <div class="month-head">${monthLabel(ym)} <span class="month-count">${n} pieza${n!==1?'s':''}</span></div>
+      ${groups.map(g=>groupHTML(g, true)).join('')}
+    </div>`;
+  }).join('');
+}
+
+function monthLabel(ym){
+  if(ym === 'sin-fecha') return 'Sin fecha';
+  const [y, m] = ym.split('-');
+  const name = MESES_ES[parseInt(m,10) - 1] || '';
+  return `${name.charAt(0).toUpperCase() + name.slice(1)} ${y}`;
 }
 
 function updateProveedoresList(){
